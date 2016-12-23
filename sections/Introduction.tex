@@ -1,0 +1,40 @@
+\newpage
+\sektion{1}{Introduction}
+
+%%% MOTIVATION %%%
+\subsection{Motivation}
+
+Princeton's Computer Science department is growing faster than it can handle:
+
+% COS 126 Enrollment figure
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.73\textwidth]{COS-126-Enrollment.png}
+    \caption{Final Spring Semester COS 126 Enrollment Numbers by Year}
+    \figextra{Darker color indicates higher enrollment difference from previous year}
+    \label{fig:enrollment}
+\end{figure}
+
+In Figure \ref{fig:enrollment}, we see the enrollment rates for the department's introductory course, COS 126: as you can see, the number of students enrolled has more than doubled over the last ten years, with nearly 400 students enrolled at the time of this paper. The department's other courses are also growing, with another 400 students enrolled in its intermediate courses: COS 217 and COS 226 \cite{registrar}. Supplying the proper amount of attention and assistance to these numbers of students is infeasible with the department's current faculty size. Our university and others are realizing that the only way to have enough manpower to handle the climbing enrollment rates is to hire from the pool of undergraduates.
+
+A scalable, intuitive system for managing the student resources is also needed; a poor HR system will only result in more chaos as the number of hires begin to rise. Currently, undergraduate resource management at Princeton is performed by hand across several Google Forms. This requires the maintenance of redundant information, is difficult to navigate, and does not perform adequately at scale. As the course enrollment numbers continue to grow, and correspondingly, the number of undergraduate hires, administrating student resources will itself become an unnecessarily difficult and complex task without a proper system in place.
+
+%%% RELATED WORK %%%
+\subsection{Related Work}
+
+% Bamboo HR Figure
+\begin{wrapfigure}{r}{0.52\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Bamboo.png}
+    \caption{Bamboo HR}
+    \label{fig:bamboo}
+\end{wrapfigure}
+
+There are currently no applications that specifically aid the hiring and management of student resources. There are general HR systems, such as BambooHR \cite{bamboo}, shown in Figure \ref{fig:bamboo}, that provide standard management tools for employee administrators. However, these apps provide much more functionality than is required, such as management of job benefits and tax information, and cannot leverage information provided by the university, leading to unnecessarily large registration forms.
+
+There are also systems that make the work performed by undergraduate hires more efficient: such as codePost \cite{codePost}, which streamlines the grading process for multiple users, or the Lab TA Queue \cite{lab-ta-queue}, which provides an organized scheduling mechanism for undergrad TAs to service their clients. However, these systems still require qualified people to be selected and hired for the position. This is the gap that \tigeruhr{} aims to fulfill.
+
+%%% GOAL %%%
+\subsection{Goal}
+
+The department needs a system that consolidates the hiring and management of all undergraduate positions under a single application, and provides an easy-to-use interface for doing so. The goal of my project is to implement that system: a webapp that will collect the relevant information for all Computer Science undergraduate resources, and streamline the application and hiring process by providing a clean and intuitive UI.

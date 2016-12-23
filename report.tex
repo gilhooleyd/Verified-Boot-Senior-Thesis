@@ -1,0 +1,96 @@
+\documentclass[12pt,twoside]{article}
+
+% Useful Packages
+\usepackage{import}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+% \usepackage{subfig}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage{lipsum}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Set page dimensions, header, and footer
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\parindent}{1cm}
+\usepackage[paperheight=11in,
+            paperwidth=8.5in,
+            outer=1.2in,
+            inner=1.2in,
+            bottom=.7in,
+            top=.7in,
+            includeheadfoot]{geometry}
+\addtolength{\headwidth}{.75in}
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[RE,LO]{\sectionname}
+\setlength{\headheight}{15.8pt}
+\raggedbottom
+
+% Colored Links
+\hypersetup {
+	colorlinks = true,
+    citecolor = red,
+    linkcolor = black,
+    urlcolor = blue
+}
+
+% Tell where to find images
+\graphicspath{{images/}}
+
+% Define import macros
+\newcommand{\secdir}{sections/}
+\newcommand{\importsec}[1]{\input{\secdir/#1.tex}}
+
+% Easy text arrows
+\newcommand{\larrow}{$\leftarrow \hspace{0.05in}$}
+\newcommand{\rarrow}{$\rightarrow \hspace{0.05in}$}
+
+% Formatted bullet lists
+\newcommand{\bullist}{\begin{itemize} \setlength{\itemindent}{0in} \setlength\itemsep{0em}}
+\newcommand{\finbullist}{\end{itemize}}
+\newcommand{\subbullet}[1]{\bullist \item #1 \finbullist}
+
+% Formatted number lists
+\newcommand{\numlist}{\begin{enumerate} \setlength{\itemindent}{0in} \setlength\itemsep{0em}}
+\newcommand{\finnumlist}{\end{enumerate}}
+
+% Section Trackers
+\newcommand{\sektion}[2]{\stepcounter{section}
+    \renewcommand{\thesection}{#1}
+    \section{#2} \gdef\sectionname{#2}}
+\newcommand{\subsektion}[1]{\subsection*{#1}
+    \addcontentsline{toc}{subsection}{#1}}
+\newcommand\sectionname{}
+
+% Figure Extensions
+\newcommand{\figextra}[1]{%
+    \par\vspace*{-\abovecaptionskip}
+    \caption*{\small{#1}}}
+
+% Other aliases
+\newcommand{\tigeruhr}{TITLE}
+\newcommand{\advisor}{ADVISOR}
+\newcommand{\seesec}[1]{(See ``#1'' section)}
+
+\begin{document}
+
+% Import Sections
+\importsec{Title}
+\importsec{SystemDesign}
+\importsec{Vboot}
+\importsec{ROFW}
+%\importsec{Introduction}
+%\importsec{Approach}
+%\importsec{Implementation}
+%% \importsec{Evaluation}
+%\importsec{Conclusion}
+%\importsec{References}
+% \importsec{Appendix}
+
+\end{document}
+

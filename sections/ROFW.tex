@@ -1,0 +1,41 @@
+\section{Read-Only Firmware}
+% Because the RO Firmware is Read-Only, it is unable to updated during the life of the chromebook without dismantling the hardware.
+% This is a double-edged sword for security purposes. 
+% The RO FW is guaranteed to be the same code that shipped with the device, so one does not need to worry about it being compromised by attackers.
+% However, any flaws in the shipped code are, by definition, unable to be patched and will remain a security vulnerability for the lifetime of the device.
+% Because of these complications, the RO Firmware accomplishes the bare minimum of its responsibilities, leaving the more complicated tasks to the RW Firmware that is able to be patched ``In the Field''.
+
+The Read-Only Firmware's purpose is to provide an initial configuration of the board's hardware and to verify the block of code that has been provided as the Read-Write Firmware.
+The hardware required for this stage includes the TPM, SHA accelerator, Keyboard, and Display.
+
+% THOUGHT: What if we could change the root key location *before* it got loaded in?
+
+The first thing that RO Firmware is responsible for is loading in all of the Flash memory to RAM so that it is more easily accessible. 
+After Flash memory is in RAM, data structures like the GBB and the Firmware Image are populated by reading the flashmap, which is always stored at a set location.
+Once the data structures are populated and the hardware drivers are loaded, the Read-Only Firmware moves into the Vboot library to verify the next stage.
+
+
+% RO FW destinations
+If the RO Vboot fails, there are many options it can decide to take.
+Almost all of the RO Vboot failures leads to a ``recovery reason'' being stored in Flash and then power cycling the system.
+If the system is booted with a recovery reason, the RO Firmware will take the Recovery path and request to be restored from a Recovery USB. %TODO: see early stages and giant stage image
+
+\subsubsection{TPM Properties Used}
+
+The RO Firmware is responsible for controlling the TPM setup and ensuring that its properties hold. 
+The TPM is responsible for attesting the boot flags and protecting against rollback attacks. 
+Setting the TPM up requires that the TPM is lead through its self-check, and that the data zones required by Chrome exist within the TPM's state.
+
+% Physical Presence
+% http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
+Chrome disables the physical protection in the RO Firmware.
+Physical presence is something that can be set high or low on a TPM either through software commands or a hardware wire. 
+If PP is set high, then the ownership of the TPM can be changed and the re-provisioning operations become available.
+For this reason, Chrome completely disables this option by permanently locking the TPM to a low PP\@.
+
+% Rollback Attack
+% TODO: Rollback attack visual
+The other thing that the TPM protects from is Rollback Attacks.
+In this situation a rollback attack is when older software with known vulnerabilities replaces newer, protected software in a malicious ``upgrade''.
+This attack works against a naive implementation because the attacker is relying on an older version of ChromeOS that is available, and unmodified.
+Because the attacker is using Google's software, the software is signed by Google's private key and will be accepted by the VBoot algorithm.
