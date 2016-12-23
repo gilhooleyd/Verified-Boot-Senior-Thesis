@@ -11,6 +11,7 @@
 \usepackage{lipsum}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{subfiles}
 
 % Set page dimensions, header, and footer
 \usepackage{setspace}
@@ -44,7 +45,7 @@
 
 % Define import macros
 \newcommand{\secdir}{sections/}
-\newcommand{\importsec}[1]{\input{\secdir/#1.tex}}
+\newcommand{\importsec}[1]{\subfile{\secdir/#1.tex}}
 
 % Easy text arrows
 \newcommand{\larrow}{$\leftarrow \hspace{0.05in}$}
@@ -84,6 +85,7 @@
 \importsec{SystemDesign}
 \importsec{Vboot}
 \importsec{ROFW}
+
 %\importsec{Introduction}
 %\importsec{Approach}
 %\importsec{Implementation}

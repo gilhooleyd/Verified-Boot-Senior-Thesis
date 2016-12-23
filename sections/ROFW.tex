@@ -1,3 +1,7 @@
+\documentclass[../report.tex]{subfiles}
+\begin{document}
+\doublespacing
+
 \section{Read-Only Firmware}
 % Because the RO Firmware is Read-Only, it is unable to updated during the life of the chromebook without dismantling the hardware.
 % This is a double-edged sword for security purposes. 
@@ -39,3 +43,5 @@ The other thing that the TPM protects from is Rollback Attacks.
 In this situation a rollback attack is when older software with known vulnerabilities replaces newer, protected software in a malicious ``upgrade''.
 This attack works against a naive implementation because the attacker is relying on an older version of ChromeOS that is available, and unmodified.
 Because the attacker is using Google's software, the software is signed by Google's private key and will be accepted by the VBoot algorithm.
+
+\end{document}
