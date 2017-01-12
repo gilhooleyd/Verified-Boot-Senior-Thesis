@@ -5,18 +5,38 @@
 
 \section{System Design}
 
+For purposes of this project, we needed to find a system that contained both hardware and firmware elements and a process that required both to function correctly.
+Google's Verified Boot matches this criteria nicely. 
+As Chrome OS is Open Source and could therefore be modified to run on any hardware,
+Google has documents for extending their Verified Boot program and outlines the minimum
+number of hardware modules required for security.
+
+The hardware modules can be broken into two groups, secure storage and hardware accelerator.
+Under secure storage there is an Flash memory module that provides non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
+Under hardware accelerators there are the cryptographic functions implementing Secure Hash Algorithm (SHA) and RSA encryption. 
+The CPU accesses the hardware modules through different protocols as seen in Figure. %TODO
+These interaction methods can be abstracted to Memory Mapped I/O without losing security information.
+
 \subsection{Hardware}
 
-\subsubsection{SPI Flash}
+\subsubsection{Flash Memory}
 
 Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
 The memory is organized according to Figure~\ref{fig:fmap}. 
-This organization is stored in a structure called the Flash Map, or fmap, and it is used by the software to read information out of Flash.
 The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
-
 % TODO: check if there is some sort of mass info transfer, this seems really slow.
-% TODO: get some sources up in hereee
+The important feature of the Flash Memory is it's hardware protected Read-Only (RO) section of memory.
+The RO section is enforced by the placement of a physical screw known as the Write Protect (WP) Screw.
+If the WP Screw remains in the laptop, all writes to the RO section will fail.
+If the screw is removed, all of Google's security claims can be violated. 
+Google is aware of this and considers the warranty of the laptop to be voided if the screw is removed.
+
+The Read-Only memory is flashed into the laptop when the Chromebook is being built in the factory, before the Read-Only screw is added to the casing. 
+The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
+In this way the RO Flash acts as the ``Root of Trust'' for the system.
+In security terms, the Verified Boot process should be secure as long as the Root of Trust holds.
+Inversely, if someone removes the WP screw, none of the Verified Boot security properties will hold.
 
 \begin{figure}
   \centering
@@ -25,23 +45,23 @@ The SPI driver handles the protocol and provides an interface for reading multip
   \label{fig:fmap}
 \end{figure}
 
-The gray partitions in Figure~\ref{fig:fmap} are known as the Read-Only Flash memory.
-The Read-Only memory has been set as read only by the placement of a physical screw known as the Write Protect (WP) Screw.
-If the WP Screw remains in the laptop, all writes to these Flash locations will fail.
-Google considers the warranty of the laptop to be voided if the screw is removed, as the laptop loses all possible security protections. 
-
-The Read-Only memory is flashed into the laptop when the Chromebook is being built in the factory, before the Read-Only screw is added to the casing. 
-The Reset Vector of the CPU points to the Read-Only flash memory, so Chrome OS is in full control of the initial software being run on the machine.
-The RO Firmware contains Coreboot and Depthcharge code that drives the initialization of the hardware and the verified boot process. 
-In this way the RO Flash acts as the ``Root of Trust'' for the system.
-In security terms, the Verified Boot process should be secure as long as the Root of Trust holds.
-Inversely, if someone removes the WP screw, none of the Verified Boot security properties will hold.
-
+The organization of the Flash Memory can be seen in Figure~\ref{fig:fmap}.
+This map of Flash memory is referred to as the ``fmap'' and it is stored in Flash as can be seen in the figure.
+The gray sections of the figure are the Read Only sections and provide the Root of Trust of the boot system as discussed previously.
 
 \subsubsection{TPM}
 
-\subsubsection{External Controller}
+The Trusted Platform Module or TPM is a generic name for any secure cryptoprocessor that conforms to the standards written by the Trusted Computing Group (TCG). %TODO cite
+Although Google has released Chromebooks with both 1.2 and 2.0 TPMs, for the scope of this project we will be looking at the TPM 1.2 specification.
+
+The TPM allows for secure access of non-volatile store, with permissions that can be permanently set until the platform is powered off.
+The TPM can also create and store RSA keys as well as perform RSA encryption and decryption. 
+The TPM is communicated with by sending binary commands and data as outlined by the TCG. %TODO cite
+
+
+% \subsubsection{External Controller}
 
 \subsubsection{SHA}
+\subsubsection{RSA}
 
 \end{document}
