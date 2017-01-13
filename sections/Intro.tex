@@ -1,0 +1,26 @@
+\documentclass[../report.tex]{subfiles}
+\begin{document}
+\onehalfspacing
+
+\section{Introduction}
+
+The importance of computing in modern society can not be overstated. The increased responsibilities of computers means that security problems can have large impacts on both the personal and societal level.  As the computer industry begins to produce laptops, smart phones, servers, and embedded systems, computer hardware becomes more diverse and specialized. Diverse hardware increases the potential for vulnerabilities, and a hardware vulnerability is difficult or impossible
+to fix without replacing the device. 
+
+Verification against vulnerabilities can be done through simulation or Unit Testing, where inputs are fed into the program and compared with the observed outputs. However, as the number of inputs grows, the possibilities rise exponentially and corner cases become increasingly difficult to check. If it computationally infeasible to check every possibility, then we cannot be sure that a platform is entirely bug-free.
+
+An alternative to simulation, formal verification provides either guarantee that a property holds, or an example of inputs that violate the property. These guarantees are helpful for all programs but especially security programs where bugs can release personal information or allow malicious behavior. As platforms become more complicated, security protocols become more difficult to check and formal verification is increasingly important.
+
+\subsection{Background and Context}
+Formal verification of hardware is a well researched area and as such there are several approaches that have been used by industry and academics for formal verification.
+
+\subsection{Problem Statement}
+The trend in modern Computer Architecture is to offloading computation to specialized hardware for either speed or power savings. [FIND PAPER] As this pattern increases the job of verifying functionality  becomes more difficult. Verifying firmware and hardware separately opens the possibilities of implementation mismatches and missed vulnerabilities. Verifying firmware and hardware together does not scale well. Steps have been taken to create open source SoC designs with viable hardware firmware boundary interactions, but these designs are academic and may be missing the full implementation of industry. 
+
+The contributions that this thesis makes are the research into the open source firmware project Verified Boot created by Google; the expansion of the project into an open source hardware platform; and the evaluation of bounded model checking on verifying security properties of both hardware and software.
+
+\subsection{Overview}
+
+\pagebreak
+
+\end{document}
