@@ -4,7 +4,7 @@
 \onehalfspacing
 
 \newpage
-\sektion{1}{Verified Boot}
+\section{Verified Boot}
 
 Secure Boot is a cryptographic boot process that verifies the rest of the system code before running it, claiming to only run code that has been verified as safe and untampered.
 Google's Verified Boot (Vboot) implementation of Secure Boot starts in the Read Only Section of Flash. 
@@ -31,18 +31,44 @@ Vboot does not make any promises to the safety of the system once the kernel is 
 The attack surface of the kernel and userspace is much larger, and security holes are found in user programs (such as a web browser) on a daily basis.
 Vboot can assure the user that on every reboot, the system will either start in a clean, untampered state, or it will warn the user and provide steps for full recovery.
 
-\subsection{Boot Modes} \label{sec:boot-modes}
+\subsection{Verified Boot Stages}
 
-Vboot has an extra surface of attack from a normal verified boot because of the possibility of a transition from a normal, protected state to an unprotected state and back again.
-The unprotected state is labeled ``Developer Mode'' and it can be set by the user of the device after logging in~\cite{developer-mode}. 
-% TODO: verify that flag is in Flash memory
-Developer Mode can be turned on either by a physical switch on the device or by setting a flag high in Flash memory.
-% TODO: verify that RO checks dev for hash
-When Developer Mode is enabled, the RO and RW Firmware no longer checks that the next stage is signed by the previous stage's key combination.
-Google allows this mode so that hobbyists and enthusiasts can manipulate the hardware to its full extent.
-With Developer Mode enabled, people have been able to load full Linux Operating Systems to the Chromebook after writing their own firmware.
+The boot process of a laptop is very complex and will include very different code across different laptops with different hardware.
+In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
+These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmware (RW FW), and Kernel.
 
-Developer Mode is a security hole by nature, so various precautions are in place around its usage. 
+\begin{figure}
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{vboot_stages_overview.png}
+\end{subfigure}
+\begin{subfigure}{.60\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{vboot_stages_AB_recovery.png}
+\end{subfigure}
+\caption{Verified Boot is separated into hierarchical stages for clarity and security. This also shows the separate recovery path in case of a firmware issue.}
+\label{fig:vboot_stages_overview}
+\end{figure}
+
+The RO Firmware runs first and is only responsible for the drivers that are necessary to drive the Vboot process. 
+It's primary responsibility is finding the RW Firmware image and verifying that is has been signed by Google and the signature matches the image.
+It is also responsible for handing the main control of Vboot, such as the transitions between Developer Mode, Safe Mode, and Recovery Mode.
+
+% RW FW
+The RO Firmware passes control to the RW Firmware once it guarantees its security.
+The RW FW initializes the rest of the hardware on the chip and begins verification of the kernel.
+The security responsibility of RW Firmware for Vboot is initializing the disk drivers and loading the kernel into RAM\@.
+
+\subsection{Boot Modes}\label{sec:boot-modes}
+
+Vboot has three major boot states that influence the behavior of the boot. 
+The first state is the Safe state which goes through the full process of Verified Boot normally.
+The second state is the Recovery state which allows for a broken machine to format itself to its original state.
+The third state is the Developer state and in this state the RSA signature is not verified.
+The Developer state exists so that hobbyists can write their own firmware boot code and run operating systems other than Chrome OS\@.
+
+Developer mode poses interesting security questions to Verified boot because it essentially disables the security guarantees and allows the system to move into an insecure state~\cite{developer-mode}. 
+There are various security requirements around the Developer state transition.
 First, a physical presence is required to fully complete the developer mode transition. 
 This means that a person must sit at the computer once it has been rebooted and press a certain key combination (Control + D) when the developer mode screen appears.
 The physical presence exists such that developer mode cannot be enabled through an off-site software attack without the user's knowledge.
@@ -123,6 +149,7 @@ The Google Binary Block (GBB) is a part of Vboot's Root of Trust.
 It is a data structure stored in Read-Only memory that is initialized and configured in the factory at the laptop's creation.
 It contains the Root and Recovery RSA keys, the Hardware ID (HWID) used to identify the specific laptop make and model, a host of flags that affect boot operation, and the bitmaps used for various boot screens.
 
+
 \subsection{Code Organization}
 
 Like almost all modern operating systems, Chrome OS is written in C.
@@ -133,7 +160,15 @@ Repo is a tool to manipulate multiple code repositories.
 It's primary benefit is that it allows a company to specify how multiple git repositories should be installed and placed within a given file-system.
 This is both helpful and necessary as Chrome OS consists of over one thousand different external and internal repositories. 
 
-Coreboot, vboot\_reference, depthcharge, are the repositories used for the firmware boot process, and they are explained below. 
+Coreboot, vboot\_reference, depthcharge, are the repositories used for the firmware boot process.
+The flow of Verfied Boot through the repos can be seen in Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{code_repos}
+  \caption{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}
+  \label{fig:code_repos}
+\end{figure}
 
 \subsubsection{Coreboot}
 
@@ -141,9 +176,9 @@ Coreboot is a fully Open-Sourced alternative to traditional BIOS implementations
 It is lightweight and is configured to implement the full standard of the Unified Extensible Firmware Interface (UEFI).
 Google has chosen Coreboot because of its small code footprint, full extensibility, and the fact that it is available freely as an Open Source project.
 
-The Coreboot code is mostly responsible for doing very early initialization code on the main CPU\@. 
+The Coreboot code is responsible for doing very early initialization code on the main CPU\@. 
 % This includes things like setting up the GPIO pins, enabling hardware interrupts, setting up a large stack in RAM, and providing driver callbacks to the payload that it will eventually call.
-Coreboot is setup so that once a baseline level of initialization is complete, it passes control to another section of code called a ``payload'' ~\cite{coreboot-payload}.
+Coreboot is setup so that once a baseline level of initialization is complete, it passes control to another section of code called a ``payload''~\cite{coreboot-payload}.
 This payload is responsible for initializing the more specialized drivers, and the concept of a payload means that Google can keep support more hardware without altering the Coreboot source code.
 The payload that Coreboot calls to further initialize the Chromebook is Depthcharge.
 % Init done in src/mainboard/google/{link}/romstage.c
@@ -156,46 +191,14 @@ Depthcharge contains the minimum number of drivers necessary for the virtual boo
 The important drivers include the TPM, I2C, the EC, SPI and SPI Flash, and the display~\cite{depthcharge-slides}.
 Once the drivers are initialized successfully, Depthcharge creates the necessary structures for Vboot and then passes control into the Vboot library.
 
+Depthcharge is Google's repo that holds platform dependent code.
+The different branches in the repository hold different drivers as they are needed for each of the Chromebook's hardware.
+
 \subsubsection{Vboot\_reference}
 
 The vboot\_reference repo contains all of the control and algorithms for the vboot process~\cite{vboot-codebase}.
-The repo is designed such that it does not rely on any knowledge about the chipset or the firmware that is running. 
+The repo is designed such that it does not rely on any knowledge about the platform.
 If a function requires usage of a driver or something that is board specific, it will make a callback into Depthcharge which will provide the relevant information.
-%TODO: should I list relevant files and directories here?
 
-% \subsection{Board Specifics}
-%
-%Chromebooks are created by many different vendors and can have very different hardware and capabilities.
-
-
-\subsection{Verified Boot Stages}
-
-Google has engineered Chrome OS to make all possible assurances that it boots into a correct and untampered state. 
-The boot process of a laptop is very complex and will include very different code across different laptops and hardware versions. 
-In order to accomplish this security in a reasonable fashion and have Secure Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:fw_process}.
-These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmware (RW FW), and Kernel.
-
-\begin{figure}
-\begin{subfigure}{.4\textwidth}
-  \centering
-  \includegraphics[width=1.0\linewidth]{vboot_stages_overview.png}
-\end{subfigure}
-\begin{subfigure}{.60\textwidth}
-  \centering
-  \includegraphics[width=1.0\linewidth]{vboot_stages_AB_recovery.png}
-\end{subfigure}
-\caption{Verified Boot is separated into hierarchical stages for clarity and security}
-\label{fig:vboot_stages_overview}
-\end{figure}
-
-The RO Firmware runs first and is only responsible for the drivers that are necessary to drive the Vboot process. 
-It's primary responsibility is finding the RW Firmware and verifying its correctness. 
-It is also responsible for handing the main control of Vboot, such as the transitions between Developer Mode, Safe Mode, and Recovery Mode.
-The RO Firmware also takes care of locking parts of the TPM for the rest of the boot process.
-
-% RW FW
-The RO Firmware passes control to the RW Firmware once it guarantees its security.
-The RW FW initializes the rest of the hardware on the chip and begins verification of the kernel.
-The security responsibility of RW Firmware for Vboot is initializing the disk drivers and loading the kernel into RAM\@.
 
 \end{document}
