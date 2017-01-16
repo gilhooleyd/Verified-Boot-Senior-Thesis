@@ -6,36 +6,41 @@
 \newpage
 \section{Verified Boot}
 
-Secure Boot is a cryptographic boot process that verifies the rest of the system code before running it, claiming to only run code that has been verified as safe and untampered.
-Google's Verified Boot (Vboot) implementation of Secure Boot starts in the Read Only Section of Flash. 
-As this section is Read Only it is trusted to be untampered.
-The starting section of Vboot is referred to as the Read Only Firmware, and its purpose is to load and verify the Read Write Firmware.
-For the Read Only Firmware to fulfill its security promises, it must only load and run a Read Write firmware image if the program was determined to be safe.
-Safety is determined if an image is signed by Google and untampered with during the loading or updating process.
-
-Google also allows avenues to get around Verified Boot.
-This has been done to give willing computer owners freedom over their boot process.
-For example, some users may wish to wipe Chrome OS and install another operating system like Linux.
-Google has outlined the processes through which Verified Boot is able to be removed and the consequences for doing so and this is outlined in Section\ref{sec:boot-modes}.
+Verified Boot (Vboot) is a cryptographic boot process that verifies the rest of the system code before running it, claiming to only run code that has been verified as signed by Google and untampered.
+Vboot verifies both the system's firmware and operating system.
+It is important for security reasons that Vboot itself is unmodified and cannot be removed by a hacker wishing to replace the system's firmware or OS undetected.
+For this reason the Vboot code is stored and executed out of the Read Only Section of Flash which is designed to be unmodifiable without tampering with the system's hardware..
+The Vboot process verifies a firmware image and kernel image in a two step process.
+For Vboot to fulfill its security promises, it must only load and run images if the image was signed by Google and unmodified.
+Images that have been calculated to be unsecure will not be loaded and the system will restart into a Recovery Mode.
+Google has implemented different modes that Vboot can boot with and these modes alter the program flow and security guarantees.
+In some modes, Verified Boot can even be removed from the system.
+While seemingly counterintuitive to security, these modes have been outlined with their own security claims and properties.
+I will be describing these modes in more detail in Section~\ref{sec:boot-modes}.
 
 
 \subsection{Security Promises}
 
 The main purpose of Chrome OS's verified boot is to provide relative security to the end user without sacrificing usability or functionality. 
 In its mission statement, verified boot is designed against an ``opportunistic hacker''~\cite{vboot-design-doc}.
-This means that Vboot protects against simple vectors of attack that are relatively quick to exploit.
-These types of attacks include but are not limited to faking Google's server to provide false firmware updates, installing a malicious kernel driver, or disabling the Vboot process to read user secrets stored in hardware.
-Vboot accomplishes its goals by ensuring that all executed code during the boot process (from power on to user login) originates from Google's platform and is unmodified. 
+Vboot protects against vectors of attack that are relatively quick to exploit and it will realize the attack and nullify it on the next boot cycle.
+An example of an attack that would be caught by Vboot would be the installation of a malicious kernel driver to act as a keylogger, or replacing the kernel with an older version with known vulnerabilities.
 
-Vboot does not make any promises to the safety of the system once the kernel is running and the user has control. 
-The attack surface of the kernel and userspace is much larger, and security holes are found in user programs (such as a web browser) on a daily basis.
-Vboot can assure the user that on every reboot, the system will either start in a clean, untampered state, or it will warn the user and provide steps for full recovery.
+There are many attacks that Vboot is not able to recognize or protect against.
+For example, Vboot does not make any promises to the safety of the system once the kernel is running and the user has control. 
+Any attacks to the userspace of the Chromebook (for example the web-browser) would not affect the firmware or kernel image and would remain undetected.
+However, userspace programs by definition have lower priorities and this would reduce the severity and influence of the attack.
+Any attack to the kernel during runtime would remain until the system was powered down, which in certain situations could provide plenty of time for an attack to steal valuable data.
+
+
 
 \subsection{Verified Boot Stages}
 
 The boot process of a laptop is very complex and will include very different code across different laptops with different hardware.
 In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
 These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmware (RW FW), and Kernel.
+These sections are run in sequence with each section verifying the section that comes later.
+In this way the root of trust starts from the Read-Only portion and builds until the system has booted completely.
 
 \begin{figure}
 \begin{subfigure}{.4\textwidth}
@@ -50,14 +55,20 @@ These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmwar
 \label{fig:vboot_stages_overview}
 \end{figure}
 
-The RO Firmware runs first and is only responsible for the drivers that are necessary to drive the Vboot process. 
-It's primary responsibility is finding the RW Firmware image and verifying that is has been signed by Google and the signature matches the image.
-It is also responsible for handing the main control of Vboot, such as the transitions between Developer Mode, Safe Mode, and Recovery Mode.
+The RO Firmware runs first and as such is the root of trust for the entire platform.
+It is responsible verifying the RW Firmware image and it contains all of the code and hardware drivers it needs to accomplish this task.
+It verifies the RW Firmware Image signature using Google's main public key.
+This public key is packaged with the RO Firmware and is also read only so it is guaranteed to be secure.
+The RO Firmware is also responsible for handing the main control of Vboot, and this includes the transitions between Developer Mode, Safe Mode, and Recovery Mode.
+These transitions will be described in more detail in Section~\ref{sec:boot-modes}.
 
 % RW FW
-The RO Firmware passes control to the RW Firmware once it guarantees its security.
-The RW FW initializes the rest of the hardware on the chip and begins verification of the kernel.
-The security responsibility of RW Firmware for Vboot is initializing the disk drivers and loading the kernel into RAM\@.
+The RO Firmware passes control to the RW Firmware once it can confirm that it has been signed by Google and is unmodified.
+The RW Firmware contains the drivers for the rest of the hardware on the platform. 
+It initializes the entire platform in preparation for booting and then it attempts to verify the kernel image.
+The RW Firmware verifies the kernel using one of Google's public keys that is stored within the RW Firmware Image.
+This public key had previously been verified as secure by the RO Firmware.
+The RW Firmware Image is verifying the Kernel image off of its partition in the main hard drive.
 
 \subsection{Boot Modes}\label{sec:boot-modes}
 
@@ -73,13 +84,27 @@ First, a physical presence is required to fully complete the developer mode tran
 This means that a person must sit at the computer once it has been rebooted and press a certain key combination (Control + D) when the developer mode screen appears.
 The physical presence exists such that developer mode cannot be enabled through an off-site software attack without the user's knowledge.
 The developer mode screen is referred to internally as the ``Scary Screen'', and its purpose is also to prevent users from being tricked into enabling developer mode by an external phishing party.
+Once Developer Mode is enabled, the system can no longer claim guarantees about the boot process or its own secure storage.
+In order to prevent an attacker from enabling Developer Mode so that they could read secure storage, Vboot wipes all secure storage on the transition into Developer Mode.
+The secure storage that is wiped includes the RSA keys and various secrets stored in the TPM and the partion on disk where user data is stored.
+Wiping this data on the transition is necessary to the confidentiality of the system and failure to do so is a security risk.
 
-Once Developer Mode has been enabled, the TPM is wiped as it stores secure user data (such as passwords) and it's safety cannot be guaranteed in an insecure system.
-The partition on disk that stores user data is also wiped in this transition, as it again contains encrypted user secrets that would be vulnerable to an open system.
+These precautions are also taken on the transition from Developer Mode to Safe Mode. 
+If secure storage is left untouched moving from Developer Mode to Safe Mode, then an attacker would be able to place potentially malicious information in secure storage.
+The assumptions that Google places on secure storage require that it can only be written to and read from by Google.
+The platform will not be able to recognize if secure storage is in an insecure or malicious state and so wiping it is the easiest way to ensure that the platform has full control.
+On the transition from Developer to Safe Mode, the system has to go through Recovery Mode.
 
-These precautions are also taken on the transition back from Developer Mode to Safe Mode. 
-In order to put the machine back into Safe Mode, Recovery Mode must be activated first, and the system must be restored by a Recovery USB\@.
-The path to use the Recovery USB is stored in RO Firmware, and it will reset and clear the TPM as well as reformat the contents on disk before supplying new firmware and kernel partitions. 
+Recovery Mode is responsible for getting the system back to a secure state.
+Recovery Mode will be activated automatically when an error is recognized in Vboot.
+This error could range from hardware failures to a corrupted image to a detected attack on the system.
+When the system boots into Recovery it is for a Recovery Image stored on external memory, either on an SD card or a USB drive.
+The path for recovery uses a different RSA key for modularity and this recovery key is also stored in Read Only Flash in order to be unmodifiable.
+Once the recovery image is verified to be secure and unmodified, the image is loaded off of the external storage and it is used to replace the images currently stored on the device.
+Recovery mode is also responsible for wiping secure memory, including the user's disk partition and TPM's secure storage.
+If Recovery completes successfully, the system is in a secure state and Vboot can then continue safely.
+From a user perspective, Recovery is an easy way to wipe the device and restore it to Factory Settings.
+Recovery is also the only way to roll the device back to an early image, and this rollback is sometimes necessary if there are known problems with a newly uploaded image.
 
 \subsection{Data Structures}\label{sec:data-structures}
 
@@ -104,13 +129,12 @@ Through this section I will start at the highest hierarchical level of data stru
 
 The actual image is not a data structure but a chunk of data that is stored contiguously in non-volatile memory.
 The image structure, as seen in Figure~\ref{fig:vboot_images}, consists of three parts: a key block, a preamble, and the main body of the image.
-These parts are verified and then accessed in order.
-The key block contains a public key that verifies the signature of the preamble and the main body. 
-The preamble contains a hash of the image's body which is used to further verify the image's correctness.
-
-The only differences between the Firmware and Kernel image is in the Preambles.
-The Firmware Preamble contains the key that will be used to verify the signature of the Kernel's keyblock.
-The Kernel Preamble contains information about the bootloader's address and size instead.
+The key block is verified first, and it is verified by the main RSA key stored in Read Only memory.
+Once the key block has been shown to be safe, the RSA key located within will be used to verify the preamble.
+The preamble contains the hash of the image's body.
+The image's body contains the code that is going to be run next and it is checked against the hash stored in the preamble.
+If the preamble is for the Firmware image then it will contain the RSA key used to verify the key block of the Kernel image.
+If the preamble is for the Kernel image then it will contain information about the location of the Kernel's bootloader, like where it exists in the Kernel image and how it should be loaded into RAM\@.
 
 \subsubsection{Key Blocks}
 
