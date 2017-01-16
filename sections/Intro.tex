@@ -12,10 +12,36 @@ Verification against vulnerabilities can be done through simulation or Unit Test
 An alternative to simulation, formal verification provides either guarantee that a property holds, or an example of inputs that violate the property. These guarantees are helpful for all programs but especially security programs where bugs can release personal information or allow malicious behavior. As platforms become more complicated, security protocols become more difficult to check and formal verification is increasingly important.
 
 \subsection{Background and Context}
+
 Formal verification of hardware is a well researched area and as such there are several approaches that have been used by industry and academics for formal verification.
+Formal verification can be defined as the application of mathematical methods to the specification and verification of systems~\cite{greenstreet}.
+Combinational circuits can be described completely through a propositional logic formula, and this formula can be verified using a Boolean Satisfiability (SAT) solver.
+Solving SAT problems consists of finding a counterexample, or a subset of of clauses from the Conjunctive Normal Form (CNF) of the formula such that the subset is not satisfiable~\cite{validating-sat}.
+The CNF of a formula is the combined AND of a set of clauses where each individual clause is the combined OR of a set of smaller clauses.
+SAT solvers are useful for verifying hardware, but they can be extended to verifying properties of any system that can be described through temporal logic.
+
+Additional systems have been used to extend the capabilities of SAT solvers, allowing them to describe more complicated properties and systems. 
+One system is known as Satisfiability Modulo Theories (SMT), which essentially replaces Boolean logic elements with predicates such as inequalities or uninterpreted functions. 
+Automated tools exist to transform software programs with assertions into an SMT solver for formal verification~\cite{z3-smt-solver}.
+Another historically common tool to verify properties is Computation Tree Logic (CTL).
+CTL adds temporal distinctions over propositional logic and this allows one to easily describe how a system changes over time.
+Through the rest of this paper, software and hardware properties relevant to security will be expressed in CTL\@. 
+Once the properties are expressed formally, they will be added to the software programs through assertions and checked using SAT or SMT solvers.
 
 \subsection{Problem Statement}
-The trend in modern Computer Architecture is to offloading computation to specialized hardware for either speed or power savings. [FIND PAPER] As this pattern increases the job of verifying functionality  becomes more difficult. Verifying firmware and hardware separately opens the possibilities of implementation mismatches and missed vulnerabilities. Verifying firmware and hardware together does not scale well. Steps have been taken to create open source SoC designs with viable hardware firmware boundary interactions, but these designs are academic and may be missing the full implementation of industry. 
+
+The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
+As this pattern increases the job of verifying functionality  becomes more difficult.
+Firmware and hardware can be verified separately but this opens the possibilities of implementation mismatches and missed vulnerabilities.
+Verifying firmware and hardware together is necessary but it does not scale well. 
+Steps are being taken to create viable tools for abstraction of hardware that help with the scalability issue of formal verification.
+Instruction Level Abstraction (ILA) is one such technique that abstracts hardware to functional states that are visible to firmware~\cite{ila}.
+This technique claims to allow firmware and hardware to be verified simultaneously and at scale using formal methods.
+In order to show the full benefits of formal verification on SoCs, the hardware and software of the SoC needs to be available and conducive to testing.
+In the past, small SoCs have been created for the purpose of testing verification.
+These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
+Formal verification has been seen to be successful in analyzing common security protocols such as Secure Boot for small, Open Source SoC designs~\cite{elane}. 
+While example SoCs are useful for the first steps in testing verification methods, these methods will be most useful if they can be applied to large designs that already exist and are in use.
 
 The contributions that this thesis makes are the research into the open source firmware project Verified Boot created by Google; the expansion of the project into an open source hardware platform; and the evaluation of bounded model checking on verifying security properties of both hardware and software.
 
