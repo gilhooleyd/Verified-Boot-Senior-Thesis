@@ -1,0 +1,22 @@
+\documentclass[../report.tex]{subfiles}
+\begin{document}
+\onehalfspacing
+
+\section{Conclusion}
+
+Throughout this paper, we investigated the importance and feasibility of formally verifying a large scale system.
+Google's Verified Boot program was shown to be a good candidate for formal verification because of its security guarantees and its interactions across the hardware firmware boundary.
+Verified Boot's properties were expressed formally using CTL and many were verified against the C implementation using the model checker CMBC\@. 
+Model checking abstractions were discussed, such as unimplemented functions, which helped make the model checking possible in a short time. 
+Additionally, model checking was shown to be a good replacement for unit testing which is in place throughout many C systems.
+
+\subsection{Future Work}
+
+Throughout the next semester I hope to refine my security properties and gather more CBMC data now that I have the model checking framework running.
+At the moment all hardware functions are abstracted as C programs, but this may provide different implementation mismatches between the simulation and a real platform.
+I hope to implement previous work which is able to take hardware specifications and build an accurate implementation for model checking\cite{ila}.
+In particular, a model of the TPM is necessary to fully verify that it can act as secure storage.
+As TPMs are widely used in systems for various security protocols, an ILA model may be useful beyond the scope of this project.
+
+
+\end{document}
