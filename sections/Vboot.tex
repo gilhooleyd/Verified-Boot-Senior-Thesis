@@ -9,7 +9,7 @@
 Verified Boot (Vboot) is a cryptographic boot process that verifies the rest of the system code before running it, claiming to only run code that has been verified as signed by Google and untampered.
 Vboot verifies both the system's firmware and operating system.
 It is important for security reasons that Vboot itself is unmodified and cannot be removed by a hacker wishing to replace the system's firmware or OS undetected.
-For this reason the Vboot code is stored and executed out of the Read Only Section of Flash which is designed to be unmodifiable without tampering with the system's hardware..
+For this reason the Vboot code is stored and executed out of the Read Only Section of Flash which is designed to be unmodifiable without tampering with the system's hardware.
 The Vboot process verifies a firmware image and kernel image in a two step process.
 For Vboot to fulfill its security promises, it must only load and run images if the image was signed by Google and unmodified.
 Images that have been calculated to be unsecure will not be loaded and the system will restart into a Recovery Mode.
@@ -56,7 +56,7 @@ In this way the root of trust starts from the Read-Only portion and builds until
 \end{figure}
 
 The RO Firmware runs first and as such is the root of trust for the entire platform.
-It is responsible verifying the RW Firmware image and it contains all of the code and hardware drivers it needs to accomplish this task.
+It is responsible for verifying the RW Firmware image and it contains all of the code and hardware drivers it needs to accomplish this task.
 It verifies the RW Firmware Image signature using Google's main public key.
 This public key is packaged with the RO Firmware and is also read only so it is guaranteed to be secure.
 The RO Firmware is also responsible for handing the main control of Vboot, and this includes the transitions between Developer Mode, Safe Mode, and Recovery Mode.
@@ -171,7 +171,7 @@ They have added support for RSA 1024, 2048, 4096, 8192 and for SHA 1, 256, 512, 
 % info found in gbb_header.h
 The Google Binary Block (GBB) is a part of Vboot's Root of Trust.
 It is a data structure stored in Read-Only memory that is initialized and configured in the factory at the laptop's creation.
-It contains the Root and Recovery RSA keys, the Hardware ID (HWID) used to identify the specific laptop make and model, a host of flags that affect boot operation, and the bitmaps used for various boot screens.
+It contains the Root and Recovery RSA keys, a host of flags that affect boot operation, and the bitmaps used for various boot screens.
 
 
 \subsection{Code Organization}
