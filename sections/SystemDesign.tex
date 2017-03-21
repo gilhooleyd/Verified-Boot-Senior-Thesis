@@ -3,8 +3,9 @@
 
 \onehalfspacing
 
-\section{System Design}
+\section{Hardware Design}
 
+% TODO: Should these paragraphs be moved somewhere?
 Verification across the Hardware Firmware boundary requires a system that utilizes both Hardware and Firmware in equal parts to achieve a single goal.
 A secure bootloader is a program that ensures only encrypted and authenticated software is loaded onto a platform~\cite{secure-bootloader}.
 In order for a bootloader to be secure it must run before any other code is executed on the platform.
@@ -57,15 +58,35 @@ The organization of the Flash Memory can be seen in Figure~\ref{fig:fmap}.
 This map of Flash memory is referred to as the ``fmap'' and it is stored in Flash as can be seen in the figure.
 The gray sections of the figure are the Read Only sections and provide the Root of Trust of the boot system as discussed previously.
 
-\subsubsection{TPM}
+\subsection{TPM}
 
 The Trusted Platform Module\cite{TPM} or TPM is a generic name for any secure cryptoprocessor that conforms to the standards written by the Trusted Computing Group (TCG) \cite{TCG}.
+The TCG has released two specifications of TPMS and they are known as TPMs version 1.2 and 2.0.
 Although Google has released Chromebooks with both 1.2 and 2.0 TPMs, for the scope of this project we will be looking at the TPM 1.2 specification.
+The TPM specification outlines the commands, structures, and interface for the system.
+The TPM commands describe the full functionality of the system by describing each command the main CPU can request.
+The TPM structures describe what data structures can be passed back and forth from the CPU to the TPM, as well as what information the TPM can hold within.
+The TPM interface describes the registers that are exposed to the CPU and how they should be used to send data back and forth.
 
-The TPM allows for secure access of non-volatile store, with permissions that can be permanently set until the platform is powered off.
-The TPM can also create and store RSA keys as well as perform RSA encryption and decryption. 
-The TPM is communicated with by sending binary commands and data as outlined by the TCG\cite{TPM}. 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{tpm_hw.png}
+  \caption{The hardware block diagram for a TPM. Here we can see its types of storage and cryptographic functions\cite{tpm-slides}}
+  \label{fig:tpm_hw}
+\end{figure}
 
+We can see from Figure~\ref{fig:tpm_hw} that the TPM includes many cryptographic engines. 
+Additionally it contains its own storage (volatile and non-volatile), that can only be accessed from the main CPU in specific ways.
+For the purpose of this report, the TPM is used as a module that can securely store keys and measurements made by the bootloader.
+
+\subsubsection{TPM Registers}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{tpm_regs.png}
+  \caption{The related registers for a TPM~.}
+  \label{fig:fmap}
+\end{figure}
 
 % \subsubsection{External Controller}
 
