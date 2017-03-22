@@ -1,4 +1,5 @@
 \documentclass[../report.tex]{subfiles}
+\def\code#1{\texttt{#1}}
 \begin{document}
 
 \onehalfspacing
@@ -60,9 +61,10 @@ The gray sections of the figure are the Read Only sections and provide the Root 
 
 \subsection{TPM}
 
-The Trusted Platform Module\cite{TPM} or TPM is a generic name for any secure cryptoprocessor that conforms to the standards written by the Trusted Computing Group (TCG) \cite{TCG}.
+The Trusted Platform Module\cite{TPM} or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security.
+A TPM can be created by any company, but it must conform to the standards released by the Trusted Computing Group (TCG) \cite{TCG}.
 The TCG has released two specifications of TPMS and they are known as TPMs version 1.2 and 2.0.
-Although Google has released Chromebooks with both 1.2 and 2.0 TPMs, for the scope of this project we will be looking at the TPM 1.2 specification.
+For the scope of this project we will be looking at the TPM 1.2 specification.
 The TPM specification outlines the commands, structures, and interface for the system.
 The TPM commands describe the full functionality of the system by describing each command the main CPU can request.
 The TPM structures describe what data structures can be passed back and forth from the CPU to the TPM, as well as what information the TPM can hold within.
@@ -70,25 +72,70 @@ The TPM interface describes the registers that are exposed to the CPU and how th
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.4\linewidth]{tpm_hw.png}
-  \caption{The hardware block diagram for a TPM. Here we can see its types of storage and cryptographic functions\cite{tpm-slides}}
-  \label{fig:tpm_hw}
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{tpm_hw.png}
+\end{subfigure}
+\begin{subfigure}{.40\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{tpm_regs.png}
+\end{subfigure}
+\caption{On the left we can see the registers of the TPM that are accessed by the CPU~. On the right we can see a HW block diagram of the TPM itself\cite{tpm-slides}.}
+\label{fig:tpm_hw}
 \end{figure}
 
 We can see from Figure~\ref{fig:tpm_hw} that the TPM includes many cryptographic engines. 
-Additionally it contains its own storage (volatile and non-volatile), that can only be accessed from the main CPU in specific ways.
+Additionally it contains its own storage (volatile and non-volatile), that can be accessed from the main CPU in specific ways.
 For the purpose of this report, the TPM is used as a module that can securely store keys and measurements made by the bootloader.
 
-\subsubsection{TPM Registers}
+\subsubsection{TPM Interface}
+
+The CPU communicates to the TPM by reading and writing specific memory addresses.
+These addresses allow the CPU to send multi-byte commands to the TPM and receive multi-byte responses, even though a single byte is read or written at a time.
+I describe the registers below.
+
+\begin{itemize}
+    \item \code{Status} --- This register allows the CPU to know what state the TPM is currently in. Specifically, there are bits for  if the TPM is currently accepting or sending a command, or if the TPM is busy. Specific values can be written to this register to tell the TPM to start accepting a command, or to run a command that has been sent.
+    \item \code{Burst} --- Reading this register lets the CPU know how many bytes can be read (if sending a command) or written (if receiving a command) at a single time.
+    \item \code{Data} --- Reading this register reads one byte of data from the TPM~. Writing this register sends one byte of data to the TPM~.
+\end{itemize}
+
+% TODO: Should this be itemized or put into a graphic?
+Sending a command serially to the TPM works in the following way.
+First, the \code{Command\_Start} value is written to \code{Status}.
+Second, the \code{Burst} register is read to see how many bytes the TPM can accept.
+Next, the Data register is written to up to \code{Burst} times, until the command has been sent.
+If the command is longer then \code{Burst} amount, \code{Burst} can be polled again until it becomes non-zero.
+Finally, the \code{Command\_Go} value is written to \code{Status} and \code{Status} is polled until the TPM says that it has finished processing the command.
+
+Receiving a command follows the process above, except that \code{Data} is read instead of written to.
+
+\subsubsection{Platform Configuration Registers}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.4\linewidth]{tpm_regs.png}
-  \caption{The related registers for a TPM~.}
-  \label{fig:fmap}
+  \includegraphics[width=0.4\linewidth]{pcr_alg.png}
+  \caption{PCR extend Hardware Diagram}
+  \label{fig:pcr_alg}
 \end{figure}
 
-% \subsubsection{External Controller}
+Now that it is understood how commands are passed to and from the TPM, we can discuss the commands used by Google's Vboot.
+There are three commands that deal with the TPM's Platform Configuration Registers or PCRs.
+Under specification 1.2, a TPM is required to have 21 PCRS, each PCR is 20 bytes long and they are stored in the TPM's non-volatile storage.
+The goal of these registers is to store measurements of the system state in a secure way. 
+PCRs are secure storage because they cannot be written to directly, they are either extended or reset. 
+PCRs are extended by concatenating the current the current PCR value with the input, and then storing the SHA1 hash of the result. 
+The hardware diagram of this process can be seen in Figure~\ref{fig:pcr_alg}.
+Resetting the PCR changes the value to all zeros, although the PCRs used by VBoot have the reset functionality disabled.
+PCRs can also be locked, meaning that they are then unable to be extended or reset for the remainder of the system's power cycle.
+
+Because the PCRs store a SHA1 Hash, they are useful for taking the measurement of a system.  
+Hashing is a one way cryptographic function that is used to protect the integrity of a message.
+We can think of a hash as the fingerprint of a message, because it takes an arbitrary length of data and outputs a fixed length (20 bytes).
+The PCRs are iteratively extended with measurements of the system, for example, the hash of the Read Only Firmware, then the hash of the Read Write Firmware, and then the hash of the Kernel.
+The final result will be identical each time if and only if there were no changes in each of the things being measured.
+By the definition of hashing, it is difficult also to find a fake configuration of the system that will hash to the same value as a correct configuration, meaning that if the hashes are equal it is reasonable to assume that the system is unchanged. 
+% TODO: ^^^ wording is a little wonky, and might be moved
 
 \subsubsection{SHA}
 \subsubsection{RSA}
