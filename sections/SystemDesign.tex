@@ -27,20 +27,16 @@ Under hardware accelerators there are the cryptographic functions implementing S
 The CPU accesses the hardware modules through different protocols as seen in Figure. %TODO
 These interaction methods can be abstracted to Memory Mapped I/O without losing security information.
 
-\subsection{Hardware}
+\subsection{Flash Memory}\label{flash_mem}
 
-\subsubsection{Flash Memory}
-
-Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
-The memory is organized according to Figure~\ref{fig:fmap}. 
-The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
-The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
-% TODO: check if there is some sort of mass info transfer, this seems really slow.
-The important feature of the Flash Memory is it's hardware protected Read-Only (RO) section of memory.
-The RO section is enforced by the placement of a physical screw known as the Write Protect (WP) Screw.
-If the WP Screw remains in the laptop, all writes to the RO section will fail.
-If the screw is removed, all of Google's security claims can be violated. 
-Google is aware of this and considers the warranty of the laptop to be voided if the screw is removed.
+The Flash Memory is an amount of extra non-volatile memory connected to every Chromebook. 
+The Flash Memory contains both a Read-Only section and a Read-Write section of memory.
+The Read-Only section is arguably the most important piece of hardware because it is the Root of Trust of the Vboot system.
+Root of Trust means that the memory within the Read-Only section is assumed to be correct.
+The code within this section is the root, or base, that is responsible for verifying the rest of the Vboot process.
+This code can be assumed to be untampered because it is located within the Read-Only section.
+The Read-Only section is enforced by a physical screw, the Write Protect screw, which is located in the laptop.
+Removing this screw removes the Root of Trust, but doing so voids the laptop's warranty.
 
 The Read-Only memory is flashed into the laptop when the Chromebook is being built in the factory, before the Read-Only screw is added to the casing. 
 The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
@@ -48,16 +44,11 @@ In this way the RO Flash acts as the ``Root of Trust'' for the system.
 In security terms, the Verified Boot process should be secure as long as the Root of Trust holds.
 Inversely, if someone removes the WP screw, none of the Verified Boot security properties will hold.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{fmap_locs.png}
-  \caption{The Flash Map for Chrome OS's SPI Flash. The gray sections have been marked as Read Only~\cite{fw-summit}}
-  \label{fig:fmap}
-\end{figure}
-
-The organization of the Flash Memory can be seen in Figure~\ref{fig:fmap}.
-This map of Flash memory is referred to as the ``fmap'' and it is stored in Flash as can be seen in the figure.
-The gray sections of the figure are the Read Only sections and provide the Root of Trust of the boot system as discussed previously.
+Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
+The memory is organized according to the Flashmap which I have included in the appendix.
+The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
+The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
+For reasons I will mention in Section~\ref{qemu_em}, the Flash Memory will be the one Hardware piece needed for security that will not be emulated or verified.
 
 \subsection{TPM}
 
@@ -137,7 +128,41 @@ The final result will be identical each time if and only if there were no change
 By the definition of hashing, it is difficult also to find a fake configuration of the system that will hash to the same value as a correct configuration, meaning that if the hashes are equal it is reasonable to assume that the system is unchanged. 
 % TODO: ^^^ wording is a little wonky, and might be moved
 
-\subsubsection{SHA}
-\subsubsection{RSA}
+\subsection{SHA}
+\subsection{RSA}
+
+\subsection{QEMU Emulation}\label{qemu_em}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{qemu_layout.png}
+  \caption{The QEMU layout. We can see here how the CPU and other hardware modules write RAM, and how some QEMU modules are interfaces to external software libraries.}
+  \label{fig:qemu_layout}
+\end{figure}
+
+QEMU is an open source full machine emulator~\cite{qemu-site}.
+For this project it is used to emulate a 32 bit i386 CPU with a Memory Mapped TPM and SHA module.
+To run code, I am relying on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
+QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
+As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this report it was easier to use QEMU's built-in bootloader.
+
+The QEMU code (included in the appendix and the github link), was based off of a project developed for Open Source at Princeton by me and Lance Goodridge.
+The Open Source project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
+The Open Source project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
+These tools allowed me to create and compile a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
+
+The QEMU emulator was modified to add a TPM and a SHA module, but as mentioned in Section~\ref{flash_mem} it does not include the Flash Memory.
+While the Flash Memory is important as a Root of Trust in the System, its purpose is very simple.
+Its main function is to provide read-only storage, and this is not a property that is difficult to be checked.
+Instead of adding Flash Memory to the QEMU emulation, I load the Vboot code in with the image using the linker script. %TODO link to Linker script
+The linker script loads in different sections that would correspond to the Flash Memory, and these sections are accessed normally in RAM instead.
+
+% SW TPM library -- used by IBM
+% implements all of the TCG standards
+% Run in userspace, but passed through to be accessed by registers
+% I implemented a driver, but it is very similar to the one used by coreboot
+
+% TODO: Get the SHA working
+% Using my own SHA implementation, close to the one used by coreboot
 
 \end{document}
