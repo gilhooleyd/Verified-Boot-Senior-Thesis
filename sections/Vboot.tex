@@ -34,7 +34,7 @@ Any attack to the kernel during runtime would remain until the system was powere
 
 
 
-\subsection{Verified Boot Stages}
+\subsection{Verified Boot Flow}
 
 The boot process of a laptop is very complex and will include very different code across different laptops with different hardware.
 In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
@@ -62,13 +62,21 @@ This public key is packaged with the RO Firmware and is also read only so it is 
 The RO Firmware is also responsible for handing the main control of Vboot, and this includes the transitions between Developer Mode, Safe Mode, and Recovery Mode.
 These transitions will be described in more detail in Section~\ref{sec:boot-modes}.
 
-% RW FW
-The RO Firmware passes control to the RW Firmware once it can confirm that it has been signed by Google and is unmodified.
-The RW Firmware contains the drivers for the rest of the hardware on the platform. 
-It initializes the entire platform in preparation for booting and then it attempts to verify the kernel image.
-The RW Firmware verifies the kernel using one of Google's public keys that is stored within the RW Firmware Image.
-This public key had previously been verified as secure by the RO Firmware.
-The RW Firmware Image is verifying the Kernel image off of its partition in the main hard drive.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{verification_flow.png}
+  \caption{The logical flow for verifying the firmware image}\label{fig:verif_flow}
+\end{figure}
+
+The stages that the RO Firmware goes through include loading the image, verifying the keyblock, verifying the preamble, loading the body, verifying the body, and then executing the code in the body. 
+These stages are seen clearly in Figure~\ref{fig:verif_flow}.
+Loading the image consists of copying the image out of the Flash Memory (Section~\ref{flash_mem}) and into RAM where pointers to the image are passed around on the C call stack.
+Verifying the Keyblock consists of using its signature, which is a hash of its full information that is signed by Google's Private key.
+Google's Public Key, which is stored in the GBB, is used to decrypted the signature, so that it is now only a hash of the Keyblock.
+Finally, the entire Keyblock is hashed, and the two are compared.
+If the hashes are not equal, then the Keyblock currently viewed by the machine is not the one that was originally signed by Google.
+The Preamble is verified in the same way, except that a different Private and Public Key pair is used.
+The Keyblock holds the key that is used for the Preamble's signature.
 
 \subsection{Boot Modes}\label{sec:boot-modes}
 
