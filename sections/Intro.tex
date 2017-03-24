@@ -75,33 +75,67 @@ It is no longer enough to verify software and hardware separately, as the
 interactions between the two are an important part in modern security
 algorithms.
 
-\subsection{Previous Work in Verification}
+\subsection{Existing Verification Techniques}
 
-Formal verification of hardware is a well researched area and as such there are several approaches that have been used by industry and academics for formal verification.
-Formal verification can be defined as the application of mathematical methods to the specification and verification of systems~\cite{greenstreet}.
-Combinational circuits can be described completely through a propositional logic formula, and this formula can be verified using a Boolean Satisfiability (SAT) solver.
-Solving SAT problems consists of finding a counterexample, or a subset of of clauses from the Conjunctive Normal Form (CNF) of the formula such that the subset is not satisfiable~\cite{validating-sat}.
-The CNF of a formula is the combined AND of a set of clauses where each individual clause is the combined OR of a set of smaller clauses.
-SAT solvers are useful for verifying hardware, but they can be extended to verifying properties of any system that can be described through temporal logic.
+Formal Verification of software is a well researched area and there are several approaches that have been used for formal verification.
+Formal Verification is defined as the application of mathematical methods to
+prove or disprove the specification of a system~\cite{greenstreet}.
+To use Formal Verification, properties of a system have to be specified by the
+user. 
+Propositional logic is one of the main ways that properties are specified.
+For example, a programmer could express that given the fact that a password
+check failed, the user should not be allowed to access bank statements.
+If $A$ is access and $P$ is correct password, then the following statement
+describes the property that access cannot ever be given when the password is not
+true.
 
+\begin{equation}
+    A \to P
+\end{equation}
+
+Propositional Logic is one standard for specifying properties because it is easily
+broken down into other formats which are easier to use for verification.
+For example, all Propositional Logic statements can be described completely
+through Boolean Logic and can then be evaluated using Boolean Satisfiability
+Solvers (SAT solvers)~\cite{validating-sat}. SAT Solvers are well-researched but
+they have known limitations with scaling and with with the types of systems that
+they can describe.
 Additional systems have been used to extend the capabilities of SAT solvers, allowing them to describe more complicated properties and systems. 
 One system is known as Satisfiability Modulo Theories (SMT), which essentially replaces Boolean logic elements with predicates such as inequalities or uninterpreted functions. 
-Automated tools exist to transform software programs with assertions into an SMT solver for formal verification~\cite{z3-smt-solver}.
+
+SMT and SAT Solvers are the tools that are used to do Formal Verification
+on Software. Automated tools exist to transform software programs with
+assertions into an SMT solver for formal verification. 
+One popular tool that will be used throughout the paper is the z3 SMT solver~\cite{z3-smt-solver}.
+
+%TODO: Fix this 
 Another historically common tool to verify properties is Computation Tree Logic (CTL).
 CTL adds temporal distinctions over propositional logic and this allows one to easily describe how a system changes over time.
 Through the rest of this paper, software and hardware properties relevant to security will be expressed in CTL\@. 
 Once the properties are expressed formally, they will be added to the software programs through assertions and checked using SAT or SMT solvers.
 
-\subsection{Problem Statement}
+%TODO: Hardware Verification here?
+%TODO: Firmware Verification here?
+
+
+% TODO: Change Title
+\subsection{Problem Statement and Proposed Contribution}
 
 The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
-As this pattern increases the job of verifying functionality  becomes more difficult.
-Firmware and hardware can be verified separately but this opens the possibilities of implementation mismatches and missed vulnerabilities.
-Verifying firmware and hardware together is necessary but it does not scale well. 
-Steps are being taken to create viable tools for abstraction of hardware that help with the scalability issue of formal verification.
-Instruction Level Abstraction (ILA) is one such technique that abstracts hardware to functional states that are visible to firmware~\cite{ila}.
+As this pattern increases the job of verifying functionality becomes more difficult.
+Software and Hardware can be verified as separate units but this misses bugs
+that exist as a result of the interaction between the two.
+Firmware is difficult to verify because it requires both Software and Hardware
+working together.
+
+% TODO: Move this to an ILA explanation paragraph 
+Tools are needed for allowing Hardware to be used in conjunction with Software for formal verification.
+Instruction Level Abstraction (ILA) is a technique that allows Hardware to
+be defined as a collection of instructions that are used by Software~\cite{ila}.
 This technique claims to allow firmware and hardware to be verified simultaneously and at scale using formal methods.
-In order to show the full benefits of formal verification on SoCs, the hardware and software of the SoC needs to be available and conducive to testing.
+
+In order to show the full benefits of formal verification on SoCs, the hardware
+and software of the SoC needs to be available for testing.
 In the past, small SoCs have been created for the purpose of testing verification.
 These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
 Formal verification has been seen to be successful in analyzing common security protocols such as Secure Boot for small, Open Source SoC designs~\cite{elane}. 
