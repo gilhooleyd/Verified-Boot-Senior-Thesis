@@ -4,28 +4,51 @@
 
 \onehalfspacing
 
+\newpage
 \section{Hardware Design}
 
 % TODO: Should these paragraphs be moved somewhere?
-Verification across the Hardware Firmware boundary requires a system that utilizes both Hardware and Firmware in equal parts to achieve a single goal.
-A secure bootloader is a program that ensures only encrypted and authenticated software is loaded onto a platform~\cite{secure-bootloader}.
-In order for a bootloader to be secure it must run before any other code is executed on the platform.
+Verified Boot is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
+A bootloader is the first program that runs when a computer is initially turned
+on.
+A bootloader is responsible for initializing the computer's hardware and
+loading the rest of the Operating System.
+A secure bootloader is one that checks the code that it is loading for security
+properties, and will only load an OS that passes these checks~\cite{secure-bootloader}.
+Verified Boot checks that the OS it is loading has been signed by Google and is
+unmodified.
+
+Checking that code originated from Google and has not been modified is
+accomplished by cryptographic functions like hashing and signing.
+These functions can be computationally expensive and they are used often in a
+modern computer, so they are good candidate for Hardware accelerators.  
+
+Verified Boot is a good candidate for this report because its execution relies
+on both Hardware and Software.
+As a program, Verified Boot makes security guarantees, like an attacker is not
+able to modify the Operating System of a Chromebook. 
+A bug in Verified Boot would compromise the security of a personal laptop,
+meaning that this is a good candidate for Formal Verification.
+Additionally, Google has released both Verified Boot and Chrome OS as Open
+Source software, meaning verification can be run directly on industry code.
+
+
 Because of this, the bootloader is responsible for doing all system initialization, including hardware initialization of modules.
 The bootloading process must also complete before any of the other platform code is run, meaning that program speed is important. 
-The cryptographic functions of hashing and signing the authenticated software are computationally expensive and are therefore offloaded to hardware accelerators. 
-All of these factors make secure boot ideal for formal verification techniques.
 
-Verified Boot is an implementation of secure boot that has been designed by Google to run on their Chromebook laptops.
-Verified Boot is the bootloader to the Chrome Operating System and verifies that all system code has been signed by Google.
-Google has released both Verified Boot and Chrome OS as Open Source software, making this a viable candidate for formal verification.
-While the specific hardware in each laptop is still closed source, Google has documents for extending their Verified Boot program and outlines the minimum
-number of hardware modules required for security.
+While the code for Vboot is Open Sourced and available online, the laptop's
+hardware does not have source code available.
+However, Google does release documents describing specifications for the
+Hardware modules required. 
+These specifications were used to pick Open Sourced hardware that could be made
+to work with the Vboot code. 
+While this means that verification was being done on different hardware, the
+same techniques can easily be applied if the Chromebook hardware was ever
+released.
 
 The hardware modules can be broken into two groups, secure storage and hardware accelerator.
-Under secure storage there is an Flash memory module that provides non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
-Under hardware accelerators there are the cryptographic functions implementing Secure Hash Algorithm (SHA) and RSA encryption. 
-The CPU accesses the hardware modules through different protocols as seen in Figure. %TODO
-These interaction methods can be abstracted to Memory Mapped I/O without losing security information.
+For secure storage there is an Flash memory module that provides non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
+For hardware accelerators there are the cryptographic functions implementing Secure Hash Algorithm (SHA) and RSA encryption. 
 
 \subsection{Flash Memory}\label{flash_mem}
 
