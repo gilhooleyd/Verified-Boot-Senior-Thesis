@@ -4,20 +4,20 @@
 \onehalfspacing
 
 \newpage
-\section{Verified Boot}
+\section{Software Design}
 
-Verified Boot (Vboot) is a cryptographic boot process that verifies the rest of the system code before running it, claiming to only run code that has been verified as signed by Google and untampered.
-Vboot verifies both the system's firmware and operating system.
-It is important for security reasons that Vboot itself is unmodified and cannot be removed by a hacker wishing to replace the system's firmware or OS undetected.
-For this reason the Vboot code is stored and executed out of the Read Only Section of Flash which is designed to be unmodifiable without tampering with the system's hardware.
-The Vboot process verifies a firmware image and kernel image in a two step process.
-For Vboot to fulfill its security promises, it must only load and run images if the image was signed by Google and unmodified.
-Images that have been calculated to be unsecure will not be loaded and the system will restart into a Recovery Mode.
+% It is important for security reasons that Vboot itself is unmodified and cannot be removed by a hacker wishing to replace the system's firmware or OS undetected.
+% For this reason the Vboot code is stored and executed out of the Read Only Section of Flash which is designed to be unmodifiable without tampering with the system's hardware.
+
+This section will discuss the Software and Firmware implementation of Verified
+Boot. 
+Verified Boot (Vboot) is a secure boot implementation only runs code that has
+been signed by Google and is untampered.
+Images that have been recognized as security risks will not be loaded and the system will restart into a Recovery Mode.
 Google has implemented different modes that Vboot can boot with and these modes alter the program flow and security guarantees.
-In some modes, Verified Boot can even be removed from the system.
-While seemingly counterintuitive to security, these modes have been outlined with their own security claims and properties.
-I will be describing these modes in more detail in Section~\ref{sec:boot-modes}.
-
+In this section I will discuss the security promises made by the system as well
+as the attack vectors that are not considered.
+I will also discuss relevant data structures and program flow.
 
 \subsection{Security Promises}
 
@@ -32,14 +32,12 @@ Any attacks to the userspace of the Chromebook (for example the web-browser) wou
 However, userspace programs by definition have lower priorities and this would reduce the severity and influence of the attack.
 Any attack to the kernel during runtime would remain until the system was powered down, which in certain situations could provide plenty of time for an attack to steal valuable data.
 
-
-
 \subsection{Verified Boot Flow}
 
-The boot process of a laptop is very complex and will include very different code across different laptops with different hardware.
 In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
 This also allows Google to make the Read-Only stage as small as possible, which is good because bugs in this stage cannot be fixed.
-These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmware (RW FW), and Kernel.
+These sections are referred to as Read-Only (RO) Firmware, Read-Write
+(RW) Firmware, and Kernel.
 These sections are run in sequence with each section verifying the section that comes later.
 In this way the root of trust starts from the Read-Only portion and builds until the system has booted completely.
 For the scope of this document we will discuss only the Verified Boot process for the verification between RO Firmware and RW Firmware. 
@@ -74,12 +72,28 @@ These transitions will be described in more detail in Section~\ref{sec:boot-mode
 The stages that the RO Firmware goes through include loading the image, verifying the keyblock, verifying the preamble, loading the body, verifying the body, and then executing the code in the body. 
 These stages are seen clearly in Figure~\ref{fig:verif_flow}.
 Loading the image consists of copying the image out of the Flash Memory (Section~\ref{flash_mem}) and into RAM where pointers to the image are passed around on the C call stack.
+
 Verifying the Keyblock consists of using its signature, which is a hash of its full information that is signed by Google's Private key.
-Google's Public Key, which is stored in the GBB, is used to decrypted the signature, so that it is now only a hash of the Keyblock.
+Google's Public Key, which is stored in Read-Only Memory, is used to decrypted the signature, so that it is now only a hash of the Keyblock.
 Finally, the entire Keyblock is hashed, and the two are compared.
 If the hashes are not equal, then the Keyblock currently viewed by the machine is not the one that was originally signed by Google.
+
 The Preamble is verified in the same way, except that a different Private and Public Key pair is used.
 The Keyblock holds the key that is used for the Preamble's signature.
+The Keyblock is used so that Google has the ability to change the encryption
+type of the Preamble and Firmware if they wish.
+Google's Main Public Key is stored in Read-Only memory, so it cannot be changed.
+This hierarchy of keys also allows Google to be less careful with their ``lower
+security'' keys because they can change them via update if the key is
+compromised.
+
+After the Preamble is verified, the Firmware Image is hashed and compared
+against the hash stored in the preamble. 
+The hash in the preamble has already been verified because the preamble was
+signed, so this verifies that the Image is correct and unmodified. Finally, the
+system jumps to the Image and begins to execute the code for the main Firmware
+and Operating System.
+
 
 \subsection{Boot Modes}\label{sec:boot-modes}
 
@@ -120,22 +134,17 @@ Recovery is also the only way to roll the device back to an early image, and thi
 \subsection{Data Structures}\label{sec:data-structures}
 
 To start understanding the Vboot verification process, it is necessary to talk about the data structures that are used throughout. 
-These data structures are populated by the Firmware or Kernel Image that is attempting to be verified.
+These data structures are populated by the Firmware Image that is being
+verified. 
 Through this section I will start at the highest hierarchical level of data structure then explain the structures that are contained within.
 
 \subsubsection{Firmware/Kernel Image}
 
 \begin{figure}
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[width=1.0\linewidth]{fw_image.png}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[width=1.0\linewidth]{kernel_image.png}
-\end{subfigure}
-\caption{Layout of the Firmware and Kernel Images~\cite{vboot-data-structures}}
-\label{fig:vboot_images}
+    \centering
+    \includegraphics[width=0.4\linewidth]{fw_image.png}
+    \caption{Layout of the Firmware Images~\cite{vboot-data-structures}}
+    \label{fig:vboot_images}
 \end{figure}
 
 The actual image is not a data structure but a chunk of data that is stored contiguously in non-volatile memory.
@@ -144,8 +153,7 @@ The key block is verified first, and it is verified by the main RSA key stored i
 Once the key block has been shown to be safe, the RSA key located within will be used to verify the preamble.
 The preamble contains the hash of the image's body.
 The image's body contains the code that is going to be run next and it is checked against the hash stored in the preamble.
-If the preamble is for the Firmware image then it will contain the RSA key used to verify the key block of the Kernel image.
-If the preamble is for the Kernel image then it will contain information about the location of the Kernel's bootloader, like where it exists in the Kernel image and how it should be loaded into RAM\@.
+The preamble also contains the RSA key used to verify the key block of the Kernel image.
 
 \subsubsection{Key Blocks}
 
@@ -187,7 +195,7 @@ It contains the Root and Recovery RSA keys, a host of flags that affect boot ope
 
 \subsection{Code Organization}
 
-Like almost all modern operating systems, Chrome OS is written in C.
+Like most modern operating systems, Chrome OS is written in C.
 Like Linux, Chrome OS is maintained using Git for version control. 
 Git is a diff-based, non-centralized version control system that makes it easy for programmers to share code, rollback changes, and maintain separate branches of the same codebase~\cite{git}.
 Google has built a tool called ``repo'' that is used on top of git~\cite{repo}. 
@@ -196,7 +204,8 @@ It's primary benefit is that it allows a company to specify how multiple git rep
 This is both helpful and necessary as Chrome OS consists of over one thousand different external and internal repositories. 
 
 Coreboot, vboot\_reference, depthcharge, are the repositories used for the firmware boot process.
-The flow of Verfied Boot through the repos can be seen in Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
+The flow of Verfied Boot through the repos can be seen in
+Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 
 \begin{figure}
   \centering
@@ -218,16 +227,14 @@ This payload is responsible for initializing the more specialized drivers, and t
 The payload that Coreboot calls to further initialize the Chromebook is Depthcharge.
 % Init done in src/mainboard/google/{link}/romstage.c
 
-% TODO: Who is responsible for loading the Flashmap into MMIO? 
-
-\subsubsection{DepthCharge}
-
-Depthcharge contains the minimum number of drivers necessary for the virtual boot to work successfully~\cite{depthcharge-codebase}. 
-The important drivers include the TPM, I2C, the EC, SPI and SPI Flash, and the display~\cite{depthcharge-slides}.
-Once the drivers are initialized successfully, Depthcharge creates the necessary structures for Vboot and then passes control into the Vboot library.
-
-Depthcharge is Google's repo that holds platform dependent code.
-The different branches in the repository hold different drivers as they are needed for each of the Chromebook's hardware.
+% \subsubsection{DepthCharge}
+% 
+% Depthcharge contains the minimum number of drivers necessary for the virtual boot to work successfully~\cite{depthcharge-codebase}. 
+% The important drivers include the TPM, I2C, the EC, SPI and SPI Flash, and the display~\cite{depthcharge-slides}.
+% Once the drivers are initialized successfully, Depthcharge creates the necessary structures for Vboot and then passes control into the Vboot library.
+% 
+% Depthcharge is Google's repo that holds platform dependent code.
+% The different branches in the repository hold different drivers as they are needed for each of the Chromebook's hardware.
 
 \subsubsection{Vboot\_reference}
 
@@ -235,5 +242,10 @@ The vboot\_reference repo contains all of the control and algorithms for the vbo
 The repo is designed such that it does not rely on any knowledge about the platform.
 If a function requires usage of a driver or something that is board specific, it will make a callback into Depthcharge which will provide the relevant information.
 
+One of the more helpful features of the vboot\_reference repo is that it can be
+built in a stand-alone fashion as a C archive file.
+More information about building the project can be found in the appendix, but
+this feature allowed the Vboot functions to be placed into the QEMU environment
+easily, and it can be adapted for many different types of hardware.
 
 \end{document}
