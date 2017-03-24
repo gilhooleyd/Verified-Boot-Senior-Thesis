@@ -4,12 +4,50 @@
 
 \section{Introduction}
 
-The importance of computing in modern society can not be overstated. The increased responsibilities of computers means that security problems can have large impacts on both the personal and societal level.  As the computer industry begins to produce laptops, smart phones, servers, and embedded systems, computer hardware becomes more diverse and specialized. Diverse hardware increases the potential for vulnerabilities, and a hardware vulnerability is difficult or impossible
-to fix without replacing the device. 
+The importance of computing in modern society can not be overstated. The
+increased responsibilities of computers means that security problems can have
+large impacts on both the personal and societal level.  As the computer industry
+begins to produce laptops, smart phones, servers, and embedded systems, computer
+hardware becomes more diverse and specialized. Diverse hardware increases the
+potential for vulnerabilities, and a hardware vulnerability is difficult or
+impossible to fix without replacing the device. 
 
-Verification against vulnerabilities can be done through simulation or Unit Testing, where inputs are fed into the program and compared with the observed outputs. However, as the number of inputs grows, the possibilities rise exponentially and corner cases become increasingly difficult to check. If it computationally infeasible to check every possibility, then we cannot be sure that a platform is entirely bug-free.
+Current industry standard is to use Unit Testing to discover errors in programs. 
+Unit Testing is the process of dividing a program up into functional chunks and
+verifying each function as a single unit. 
+These units are used as ``black boxes'', meaning that they are fed a range
+of test inputs, and the behavior is compared against a set of assumptions.
+However, Unit Testing has a problem with scaling and with interface interaction.
+Inputs for tests scale exponentially, computers can only check a unit against
+every possible input if the space of inputs is relatively small. 
+Most Unit Tests only test against a few inputs that are thought to be
+representative. 
+However, this means that there is always the possibility of bugs
+on the set of inputs that were not used in testing.
+Interface interaction is defined as errors that are a result of a number of
+functions interacting together in an undefined way.
+These erroneous interactions are not caught by Unit Testing because by
+definition only individual units are tested together. 
 
-An alternative to simulation, formal verification provides either guarantee that a property holds, or an example of inputs that violate the property. These guarantees are helpful for all programs but especially security programs where bugs can release personal information or allow malicious behavior. As platforms become more complicated, security protocols become more difficult to check and formal verification is increasingly important.
+Formal Verification is an enhancement to Unit Testing. 
+Formal Verification is the act of proving or disproving the correctness of a
+function by using mathematical proof techniques. 
+This verification requires that the function's correctness is specified in a
+series of formal properties.
+Once these properties are created, there are current verification methods that
+will produce proofs that a property holds under all possible inputs.
+Unlike Unit Testing, Formal Verification tools look at the code itself to quickly find inputs that would violate a user-defined property. 
+
+Formal guarantees that a program is working correctly is very helpful for
+security programs where bugs can release personal information or allow malicious
+behavior.
+Security programs are becoming more complicated, and bugs are becoming more
+harmful.
+Formal Verification of programs are becoming more popular as a formal proof of
+a program's correctness provides peace of mind against security bugs.
+However, today's security programs are relying both on software programs and
+hardware modules working together, and there are not industry standards to
+produce verification across this new boundary.
 
 \subsection{Background and Context}
 

@@ -38,9 +38,12 @@ Any attack to the kernel during runtime would remain until the system was powere
 
 The boot process of a laptop is very complex and will include very different code across different laptops with different hardware.
 In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
+This also allows Google to make the Read-Only stage as small as possible, which is good because bugs in this stage cannot be fixed.
 These sections are referred to as Read-Only Firmware (RO FW), Read-Write Firmware (RW FW), and Kernel.
 These sections are run in sequence with each section verifying the section that comes later.
 In this way the root of trust starts from the Read-Only portion and builds until the system has booted completely.
+For the scope of this document we will discuss only the Verified Boot process for the verification between RO Firmware and RW Firmware. 
+This verification contains more interesting control flow, and process is essentially repeated for the verification between the RW Firmware and the Kernel.
 
 \begin{figure}
 \begin{subfigure}{.4\textwidth}
