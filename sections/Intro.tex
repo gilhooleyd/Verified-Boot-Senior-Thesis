@@ -49,7 +49,33 @@ However, today's security programs are relying both on software programs and
 hardware modules working together, and there are not industry standards to
 produce verification across this new boundary.
 
-\subsection{Background and Context}
+\subsection{The Hardware-Software Boundary}
+
+Originally a computer was only a general purpose CPU, and software would
+describe how the CPU should perform various tasks.
+Today, computer engineers realize that specialized hardware can perform a single
+task much more quickly than generalized hardware.
+This lead to the creation of a System on a Chip, or SoC. An SoC is the
+combination of a CPU with smaller hardware modules that perform specialized
+tasks.
+The CPU is still the main processing unit, meaning it is responsible for
+communicating with each hardware module.
+
+Some hardware modules are taking responsibility away from software.
+If software wants to decrypt a message, then it can pass the message to an RSA
+hardware module and receive the decrypted message back.
+This means that the software does not need to implement a decryption function.
+However, the software now needs to know how to communicate with the Hardware
+module. This communication between Hardware and Software is known as Firmware.
+
+Firmware is more important now that SoCs are becoming larger and including more
+specialized Hardware. 
+More computers are including security based hardware, like hashing and encryption/decryption modules.
+It is no longer enough to verify software and hardware separately, as the
+interactions between the two are an important part in modern security
+algorithms.
+
+\subsection{Previous Work in Verification}
 
 Formal verification of hardware is a well researched area and as such there are several approaches that have been used by industry and academics for formal verification.
 Formal verification can be defined as the application of mathematical methods to the specification and verification of systems~\cite{greenstreet}.
