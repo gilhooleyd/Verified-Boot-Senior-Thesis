@@ -2,7 +2,7 @@
 \begin{document}
 \onehalfspacing
 
-
+\pagebreak
 \section{Verification}
 
 %\subsection{Read-Only Fw Purpose}
@@ -80,7 +80,8 @@ CBMC is not able to detect that this pointer manipulation is an out of bounds ar
 The pointer manipulation can be expressed formally through the following formula.
 
 \begin{equation}
-    G(s \to offset(struct) + size(struct) < size(img) \land offset(struct) > 0)
+    G(s \to \text{offset}(\text{struct}) + \text{size}(\text{struct}) <
+    \text{size}(\text{img}) \land \text{offset}(\text{struct}) > 0)
 \end{equation}
 
 In this equation $s$ is each time a structure is created from a pointer dereference, $struct$ is the structure, and $img$ is the image that it is being pointed to.
@@ -194,7 +195,19 @@ Img.version is the RW firmware version and prevVersion is the last seen version 
 These properties will be proved contrapositively, meaning that when verified boot passes we will check that the antecedent is also false.
 
 
-\subsection{CBMC Results}
+\subsection{Running CBMC}
+
+CBMC is a Bounded Model Checking program for the C language that is released by
+Carnegie Mellon. 
+A Bounded Model Checker is a tool that performs Formal Verification.
+Model checking is a way to exhaustively prove whether a given model meets its
+specification.
+Model checking uses propositional logic or temporal logic. 
+At its core, CBMC automatically transforms a C program into binary logic and
+then uses a SAT solver to check it against the specification. 
+The specification is created by the user, using an assertion API defined by the
+CBMC library. 
+% TODO: CBMC graph from poster, or list API
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
 In order to get CBMC running, certain limitations had to be observed.
@@ -292,7 +305,7 @@ This is necessary for the properties checked in LoadFirmware to propagate up to 
         test name & steps & VCCs & vars  & clauses & time (s) & sat/unsat  \\ \hline \hline
         TPM locking & 6 & 5269 & 13513 & 16784 & 0.07 & unsat \\ \hline
         LoadFirmware & 2 & 5264 & 13404 & 16209 & 0.07 & unsat \\ \hline
-        Array Accesses & 5257 & 0 & 0 & 0 & unsat \\ \hline
+        Array Accesses & 5257 & 0 & 0 & 0 & 0 &  unsat \\ \hline
     \end{tabular}
 \end{table}
 
