@@ -73,7 +73,7 @@ The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
 For reasons I will mention in Section~\ref{qemu_em}, the Flash Memory will be the one Hardware piece needed for security that will not be emulated or verified.
 
-\subsection{TPM}
+\subsection{TPM}\label{sec:TPM}
 
 The Trusted Platform Module\cite{TPM} or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security.
 A cryptographic processor is a processor that implements a variety of
@@ -194,11 +194,6 @@ While the Flash Memory is important as a Root of Trust in the System, its purpos
 Its main function is to provide read-only storage, and this is not a property that is difficult to be checked.
 Instead of adding Flash Memory to the QEMU emulation, I load the Vboot code in with the image using the linker script. %TODO link to Linker script
 The linker script loads in different sections that would correspond to the Flash Memory, and these sections are accessed normally in RAM instead.
-
-% SW TPM library -- used by IBM
-% implements all of the TCG standards
-% Run in userspace, but passed through to be accessed by registers
-% I implemented a driver, but it is very similar to the one used by coreboot
 
 % TODO: Get the SHA working
 % Using my own SHA implementation, close to the one used by coreboot

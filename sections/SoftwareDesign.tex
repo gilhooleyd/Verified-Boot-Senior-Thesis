@@ -142,7 +142,7 @@ Through this section I will start at the highest hierarchical level of data stru
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.4\linewidth]{fw_image.png}
+    \includegraphics[width=0.6\linewidth]{fw_image.png}
     \caption{Layout of the Firmware Images~\cite{vboot-data-structures}}
     \label{fig:vboot_images}
 \end{figure}
@@ -213,6 +213,14 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
   \caption{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}
   \label{fig:code_repos}
 \end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.45\linewidth]{qemu_repos}
+  \caption{This report's boot flow uses QEMU's default bootloader Firmware, then
+  a created C wrapper for the TPM and Debugging Output, and Vboot for the
+  verification}
+  \label{fig:code_repos}
+\end{figure}
 
 \subsubsection{Coreboot}\label{coreboot}
 
@@ -247,5 +255,27 @@ built in a stand-alone fashion as a C archive file.
 More information about building the project can be found in the appendix, but
 this feature allowed the Vboot functions to be placed into the QEMU environment
 easily, and it can be adapted for many different types of hardware.
+
+\subsubsection{Software TPM}
+
+This project uses a software-emulated TPM instead of a physical chip. 
+This emulated TPM implements all of the TPM's functionality as defined by the
+TCG Standards.
+The fact that the emulation was software allowed the TPM to be put into various
+states easily without requiring a physical reboot of the system.
+Once the emulated TPM was passed to QEMU, it was accessed through the same
+Memory Mapped Registers as the Hardware TPM outlined in Section~\ref{sec:TPM}.
+This was very helpful because it meant that the Vboot TPM functions would work
+with the emulated TPM.
+
+The Software TPM was taken from a series of repositories created by IBM's
+Stefan Berger. 
+These repositories emulated the TPM functions\cite{TPMLibs}, the TPM Command
+Fifo\cite{SWTPM}, and the TPM Register Interface\cite{TPMQEMU}. 
+More information about installing the Software TPM libraries can be found in the
+appendix.
+
+% TODO: C Wrapper Sub section
+
 
 \end{document}
