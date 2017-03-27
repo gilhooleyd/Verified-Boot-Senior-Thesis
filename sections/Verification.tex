@@ -1,9 +1,26 @@
 \documentclass[../report.tex]{subfiles}
+\def\code#1{\texttt{#1}}
 \begin{document}
 \onehalfspacing
 
 \pagebreak
 \section{Verification}
+
+In this section I will discuss the security properties used by each section of
+Verified Boot. These properties have been mentioned earlier, but they are
+formalized in this section.
+Later in the section I attempt to verify these properties on the Hardware and
+Software system that I outlined in Section 2 and Section 3.
+These properties are analyzed using CBMC or a new framework known as ILA, both
+of which I will be explaining.
+
+All properties are being run on the Read-Only Firmware of Verified boot, in the
+unmodified vboot\_reference repository provided by Google. 
+When secure promises cross the Hardware-Firmware boundary, they are evaluated
+using the Hardware I selected in Section 2, using Firmware that I created which
+modelled the Firmware originally found in Google's Coreboot repository. 
+If Google released the sources for their Hardware, then this testing could be
+performed with no modification to the source code. 
 
 %\subsection{Read-Only Fw Purpose}
 %The Read-Only Firmware's purpose is to provide an initial configuration of the board's hardware and to verify the block of code that has been provided as the Read-Write Firmware.
@@ -23,9 +40,12 @@
 
 \subsection{TPM Properties Used}
 
-The RO Firmware is responsible for controlling the TPM setup and ensuring that its properties hold. 
-The TPM is responsible for attesting the boot flags and protecting against rollback attacks. 
-Setting the TPM up requires that the TPM is lead through its self-check, and that the data zones required by Chrome exist within the TPM's state.
+The Read-Only Firmware is responsible for setting up the TPM and protecting its
+sections against the rest of the system that will eventually be loaded.
+TPM's responsibilities from Chrome are to securely store the boot state and to protect against rollback attacks. 
+Chrome's responsibilities for the TPM are to make sure that it is lead through
+its self-check, that physical presence is disabled, and that the data zones
+required by Chrome exist within the TPM's non-volatile state.
 
 % Physical Presence
 % http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
@@ -195,21 +215,45 @@ Img.version is the RW firmware version and prevVersion is the last seen version 
 These properties will be proved contrapositively, meaning that when verified boot passes we will check that the antecedent is also false.
 
 
-\subsection{Running CBMC}
+\subsection{CBMC}
 
 CBMC is a Bounded Model Checking program for the C language that is released by
 Carnegie Mellon. 
 A Bounded Model Checker is a tool that performs Formal Verification.
 Model checking is a way to exhaustively prove whether a given model meets its
 specification.
-Model checking uses propositional logic or temporal logic. 
-At its core, CBMC automatically transforms a C program into binary logic and
-then uses a SAT solver to check it against the specification. 
-The specification is created by the user, using an assertion API defined by the
+Model checking typically uses propositional logic or temporal logic. 
+At its core, CBMC transforms a C program into binary logic and
+then uses a SAT solver to check it against the user's specification. 
+The specification is user defined, using an API of C functions defined by the
 CBMC library. 
-% TODO: CBMC graph from poster, or list API
 
-CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{CBMC_api.png}
+  \caption{The figure on the left describes the transformation that a C
+  program undergoes to be verified. The right describes the CBMC API.}\label{fig:CBMC_api}
+\end{figure}
+
+As we can see from Figure~\ref{fig:CBMC_api}, the CMBC API is very simple.
+The \code{assert} function is the function used to describe the properties that
+were outlined in the last section. 
+The function takes in a boolean expression, and it is straightforward to
+transform the propositional logic to a boolean expression in C.
+If the boolean expression evaluates to \code{False}, then CBMC throws an error
+and a ``counterexample''.
+This counterexample is all of the program inputs and steps that led to this
+assertion being False.
+The \code{nondet\_int} function is used to model user input to the Vboot process.
+Any data that could be modified by the user could feasibly take any
+value.
+To model this, \code{nondet\_int} is a function that returns a
+``non-deterministic'' integer. 
+Non-deterministic means the return integer can take any value, and CBMC
+exhaustively checks user assertions against all possible integer values.
+
+\subsubsection{Known CBMC Limitations}
+
 In order to get CBMC running, certain limitations had to be observed.
 The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
 This loop unroller is not able to unroll loops where the upperbound is data dependant, so these loops must either be avoided, or a limitation can be placed on the unrolling through the commandline. 
@@ -218,13 +262,18 @@ If the manually unrolling limitation is too small, then CBMC results may be inco
 Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
 Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
 
+\subsubsection{Running CBMC}
+
+CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
 Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 4GB of RAM on my local machine and then be cancelled.
 In order to check properties, abstractions needed to be found such that parts of the Vboot flow could be checked at a single time.
 The key insight that was used for this project is that individual functions are essentially self contained and can be abstracted away based on the properties that one desires to check.
 Each function throughout Vboot returns an error code if it is not successful.
-When a function is abstracted away, it is programmed to return a non-deterministic value (this is done easily through CBMC's nondet\_int() function).
+When a function is abstracted away, it is programmed to return a
+non-deterministic value.
 If the non-deterministic value is zero (success), then the minimal amount of external changes (if any) should be applied to the larger function.
 If the abstracted function returns non-zero (error), then the external changes should be replaced with non-deterministic values.
+
 This method is an over-abstraction of a functions found in the Vboot library.
 An over-abstraction contains the full set of states found in the original function, plus additional states that would not be possible.
 Because the over-abstraction is a super-set of the original states, any properties that are proved with the over-abstraction will also be proved on every state of the original function.
