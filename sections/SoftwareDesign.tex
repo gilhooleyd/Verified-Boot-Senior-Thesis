@@ -28,8 +28,11 @@ An example of an attack that would be caught by Vboot would be the installation 
 
 There are many attacks that Vboot is not able to recognize or protect against.
 For example, Vboot does not make any promises to the safety of the system once the kernel is running and the user has control. 
-Any attacks to the userspace of the Chromebook (for example the web-browser) would not affect the firmware or kernel image and would remain undetected.
-However, userspace programs by definition have lower priorities and this would reduce the severity and influence of the attack.
+Any attacks that are outside of the kernel (in userspace) of the Chromebook
+would not affect the firmware or kernel image and would remain undetected.
+For example, changing the Web browser to use a proxy that collects information
+would not be considered a kernel attack.
+Userspace programs by definition have lower priorities and this reduces the severity and influence of the attack.
 Any attack to the kernel during runtime would remain until the system was powered down, which in certain situations could provide plenty of time for an attack to steal valuable data.
 
 \subsection{Verified Boot Flow}
@@ -52,7 +55,9 @@ This verification contains more interesting control flow, and process is essenti
   \centering
   \includegraphics[width=1.0\linewidth]{vboot_stages_AB_recovery.png}
 \end{subfigure}
-\caption{Verified Boot is separated into hierarchical stages for clarity and security. This also shows the separate recovery path in case of a firmware issue.}
+\caption{The left image shows the stages of Vboot Firmware. The right image
+shows the different boot paths, and data locations. Both make the distinction
+between Read-Only and Read-Write memory.}
 \label{fig:vboot_stages_overview}
 \end{figure}
 
