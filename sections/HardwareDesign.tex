@@ -168,6 +168,47 @@ Each power cycle the PCRs are reset to all 0's.
 
 \subsection{SHA}
 
+While the TPM implements SHA hashing, Vboot also takes advantage of a dedicated
+SHA hashing accelerator. 
+The TPM is designed to be secure, but the SHA module is designed to be faster
+than implementing the Hashing algorithm in software.
+The SHA-1 hashing function can operate on any length of input.
+It will iteratively hash the input in blocks of 64 bytes and output a 20 byte
+hash result.
+
+%TODO: Talk about where in opencores I found the module. 
+% Talk about Bo-Yuan's ILA of the module
+
+%TODO: Verify these registers
+The SHA module is much simpler to use than the TPM in terms of Memory Mapped
+Registers. 
+Writing to the  \code{sha\_start} register causes the module to start the
+Hashing process.
+Writing to the \code{sha\_rdaddr} tells the module where to read the input data.
+The module will read \code{sha\_len} bytes of the input data.
+Writing to the \code{sha\_rdaddr} tells the module where to put the final 20
+bytes of output data.
+Reading the \code{sha\_state} register returns the state that the module is in.
+This register is how a software program knows the module has completed its
+operation.
+
+\subsection{RSA}
+
+RSA is a cryptographic platform that allows messages to be encrypted and
+decrypted through the use of public and private keys.
+The properties of RSA are used to send messages where the message receiver can
+be sure of the identity of the message's sender. 
+The structure of the RSA keys used in Vboot are outlined in
+Section~\ref{sec:key_block}.
+
+Many computer systems include RSA hardware accelerators, however Vboot does not
+require one. 
+The Vboot library implements all RSA algorithms in software.
+These software algorithms will be used and verified instead of a hardware
+module.
+The possibility of adding a hardware RSA module will be discussed in the Future
+Work section.
+
 \subsection{QEMU Emulation}\label{qemu_em}
 
 \begin{figure}
