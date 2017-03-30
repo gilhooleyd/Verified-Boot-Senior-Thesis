@@ -38,29 +38,6 @@ performed with no modification to the source code.
 %If the firmware image is insecure or the verification process fails for other reasons, it is likely that the system will be rebooted into recovery mode. 
 %RO Vboot is responsible for setting a 32 bit flag known as a ``recovery reason'' for failure. This reason influences the Recovery process and is stored in the read write portion of Flash so that it is consistent across boots. 
 
-\subsection{TPM Properties Used}
-
-The Read-Only Firmware is responsible for setting up the TPM and protecting its
-sections against the rest of the system that will eventually be loaded.
-TPM's responsibilities from Chrome are to securely store the boot state and to protect against rollback attacks. 
-Chrome's responsibilities for the TPM are to make sure that it is lead through
-its self-check, that physical presence is disabled, and that the data zones
-required by Chrome exist within the TPM's non-volatile state.
-
-% Physical Presence
-% http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
-Chrome disables the physical protection in the RO Firmware.
-Physical presence is something that can be set high or low on a TPM either through software commands or a hardware wire. 
-If Physical Presence is set high, then the ownership of the TPM can be changed and the re-provisioning operations become available.
-For this reason, Chrome completely disables this option by permanently locking the TPM to a low Physical Presence\@.
-
-% Rollback Attack
-% TODO: Rollback attack visual
-The other thing that the TPM protects from is Rollback Attacks.
-In this situation a rollback attack is when older software with known
-vulnerabilities replaces newer, protected software in a malicious ``upgrade.''
-This attack works against a naive implementation because the attacker is relying on an older version of ChromeOS that is available, and unmodified.
-Because the attacker is using Google's software, the software is signed by Google's private key and will be accepted by the VBoot algorithm.
 
 \subsection{RO Firmware Properties}
 
@@ -263,7 +240,7 @@ If the manually unrolling limitation is too small, then CBMC results may be inco
 Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
 Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
 
-\subsubsection{Running CBMC}
+\subsection{Verifying Vboot with CBMC}
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
 Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 4GB of RAM on my local machine and then be cancelled.
@@ -334,7 +311,7 @@ Array accesses check for all array bounds errors.
 We can see from these tests that CBMC is working successfully and in a reasonable time.
 The Google unit test framework is can be put to use with the CBMC framework using minor modifications, and the formal verification can be done in a very reasonable time.
 
-\subsection{VbSelectFirmware}
+\subsubsection{VbSelectFirmware}
 
 The VbSelectFirmware function is the wrapper around LoadFirmware.
 It is responsible for loading flags in from secure storage and for accessing the TPM\@.
@@ -359,6 +336,33 @@ This is necessary for the properties checked in LoadFirmware to propagate up to 
     \end{tabular}
 \end{table}
 
+\subsection{TPM Properties}
+
+The Read-Only Firmware is responsible for setting up the TPM and protecting its
+sections against the rest of the system that will eventually be loaded.
+TPM's responsibilities from Chrome are to securely store the boot state and to protect against rollback attacks. 
+Chrome's responsibilities for the TPM are to make sure that it is lead through
+its self-check, that physical presence is disabled, and that the data zones
+required by Chrome exist within the TPM's non-volatile state.
+
+% Physical Presence
+% http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
+Chrome disables the physical protection in the RO Firmware.
+Physical presence is something that can be set high or low on a TPM either through software commands or a hardware wire. 
+If Physical Presence is set high, then the ownership of the TPM can be changed and the re-provisioning operations become available.
+For this reason, Chrome completely disables this option by permanently locking the TPM to a low Physical Presence\@.
+
+% Rollback Attack
+% TODO: Rollback attack visual
+The other thing that the TPM protects from is Rollback Attacks.
+In this situation a rollback attack is when older software with known
+vulnerabilities replaces newer, protected software in a malicious ``upgrade.''
+This attack works against a naive implementation because the attacker is relying on an older version of ChromeOS that is available, and unmodified.
+Because the attacker is using Google's software, the software is signed by Google's private key and will be accepted by the VBoot algorithm.
+
+\subsubsection{ILA for Hardware}   
+
+\subsubsection{Verifying TPM with ILA}   
 \clearpage
 
 \end{document}
