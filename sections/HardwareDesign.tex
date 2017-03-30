@@ -167,7 +167,6 @@ Each power cycle the PCRs are reset to all 0's.
 % TODO: Talk about the NV Storage Commands
 
 \subsection{SHA}
-\subsection{RSA}
 
 \subsection{QEMU Emulation}\label{qemu_em}
 
@@ -178,7 +177,7 @@ Each power cycle the PCRs are reset to all 0's.
   \label{fig:qemu_layout}
 \end{figure}
 
-QEMU is an open source full machine emulator~\cite{qemu-site}.
+QEMU~\cite{qemu-site} is an open source emulator that is used in the report to emulate the computer running Vboot.
 For this project it is used to emulate a 32 bit i386 CPU with a Memory Mapped TPM and SHA module.
 To run code, I am relying on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
 QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
@@ -197,5 +196,37 @@ The linker script loads in different sections that would correspond to the Flash
 
 % TODO: Get the SHA working
 % Using my own SHA implementation, close to the one used by coreboot
+
+\subsection{Instruction Level Abstraction (ILA)}
+
+I am using a tool to create an Instruction Level Abstraction (ILA) of Hardware.
+The ILA is used to create an abstraction of the TPM and SHA module that can be
+easily verified.
+Verifying Firmware is difficult because it accesses Hardware by writing to
+memory-mapped registers that trigger Hardware events.
+Using a Software only model checker like CBMC will only see these writes
+and reads to addresses, and it will not understand that a single write
+corresponds to an entire Hardware operation.
+
+ILA provides a way to ``precisely capture updates to all firmware-accessible
+states spanning cores, accelerators, and peripherals''\cite{ila-template}.
+An ILA is created from either a C or Verilog program that represents the
+Hardware.
+This program is referred to as the Oracle, and the resulting abstraction from
+the ILA will capture the Oracle's behavior. %TODO: bad wording
+A programmer must manually create an ILA template that describes each state of
+the Hardware and each of the states possible updates.
+The template is focused on the ``instructions'' of a Hardware module, and it is
+programmed using the standard Fetch, Decode, Execute module of a Computer CPU\@. 
+Completing the template involves manually specifying hardware state, possible
+inputs (Decode), and possible updates (Execute).
+Once the template is complete, the ILA library uses the Oracle to fill in the
+holes of which Decode values correspond to which functions the system Executes.
+
+The ILA template that is created captures the interface of the Hardware.
+It produces an abstraction that is aware of how the Hardware reacts to Reads and
+Writes of specific Registers.
+This template can be connected back with the Firmware such that verification can
+happen across the Firmware-Hardware boundary.
 
 \end{document}
