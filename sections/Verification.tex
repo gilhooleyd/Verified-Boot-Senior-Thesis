@@ -4,21 +4,21 @@
 \onehalfspacing
 
 \pagebreak
-\section{Verification}
+\section{Verification}\label{sec:Verif}
 
 In this section I will discuss the security properties used by each section of
 Verified Boot. These properties have been mentioned earlier, but they are
 formalized in this section.
-Later in the section I attempt to verify these properties on the Hardware and
+Later in the section I verify these properties on the Hardware and
 Software system that I outlined in Section 2 and Section 3.
-These properties are analyzed using CBMC or a new framework known as ILA, both
-of which I will be explaining.
+Properties in software are checked using CBMC, where properties across the Hardware-Firmware boundary are checked using ILA.
 
-All properties are being run on the Read-Only Firmware of Verified boot, in the
-unmodified vboot\_reference repository provided by Google. 
+All properties are being defined on the Read-Only Firmware of Verified boot.
+The code for Verified Boot is taken from an unmodified vboot\_reference repository provided by Google. 
 When secure promises cross the Hardware-Firmware boundary, they are evaluated
-using the Hardware I selected in Section 2, using Firmware that I created which
-modelled the Firmware originally found in Google's Coreboot repository. 
+using the Hardware I selected in Section 2.
+The Firmware that interacts with this Hardware was created by me, however it was 
+modeled after the Firmware originally found in Google's Coreboot repository. 
 If Google released the sources for their Hardware, then this testing could be
 performed with no modification to the source code. 
 
@@ -89,12 +89,6 @@ Together these properties state that array accesses must be in bounds and that s
 As these are the two memory referencing techniques that have the potential for overrun, these properties protect the system against overrun attacks.
 
 \subsubsection{Program Flow properties}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{verification_flow.png}
-  \caption{The logical flow for verifying the firmware image}\label{fig:verif_flow}
-\end{figure}
 
 There needs to be an ordered constraint on the flow of the program. 
 If the program flow is described formally then it will be easy to check that all stages of secure boot were called and in the correct order.

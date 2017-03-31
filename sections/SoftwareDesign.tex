@@ -23,17 +23,24 @@ I will also discuss relevant data structures and program flow.
 
 The main purpose of Chrome OS's verified boot is to provide relative security to the end user without sacrificing usability or functionality. 
 In its mission statement, verified boot is designed against an ``opportunistic hacker''~\cite{vboot-design-doc}.
-Vboot protects against vectors of attack that are relatively quick to exploit and it will realize the attack and nullify it on the next boot cycle.
-An example of an attack that would be caught by Vboot would be the installation of a malicious kernel driver to act as a keylogger, or replacing the kernel with an older version with known vulnerabilities.
+Vboot protects against vectors of attack that are relatively quick to exploit.
+Vboot will realize any attack or modification on the next boot cycle.
+Once an attack is realized Vboot will get the system back to a secure state.
+An example of an attack that would be caught by Vboot would be the installation
+of a malicious kernel driver to act as a keylogger, or the replacement of the
+current kernel with an older version that has known vulnerabilities.
 
 There are many attacks that Vboot is not able to recognize or protect against.
 For example, Vboot does not make any promises to the safety of the system once the kernel is running and the user has control. 
-Any attacks that are outside of the kernel (in userspace) of the Chromebook
-would not affect the firmware or kernel image and would remain undetected.
+Any attacks that are outside of the kernel (in userspace) would remain
+undetected because they would not modify the kernel.
 For example, changing the Web browser to use a proxy that collects information
 would not be considered a kernel attack.
-Userspace programs by definition have lower priorities and this reduces the severity and influence of the attack.
-Any attack to the kernel during runtime would remain until the system was powered down, which in certain situations could provide plenty of time for an attack to steal valuable data.
+Userspace programs by definition have less access to the system and this reduces the severity and influence of the attack.
+Possibly one of the biggest flaws is that any attack to the kernel during
+runtime would remain until the system was powered down.
+In certain situations could provide plenty of time for an attack to steal valuable data.
+However, such an attack is outside the scope of this paper.
 
 \subsection{Verified Boot Flow}
 
@@ -71,13 +78,15 @@ These transitions will be described in more detail in Section~\ref{sec:boot-mode
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{verification_flow.png}
-  \caption{The logical flow for verifying the firmware image}\label{fig:verif_flow}
+  \caption{The logical flow for verifying the firmware image. Notice
+  the different path for Developer mode, and the possibilities for
+  failure.}\label{fig:verif_flow}
 \end{figure}
 
 The stages that the RO Firmware goes through include loading the image, verifying the keyblock, verifying the preamble, loading the body, verifying the body, and then executing the code in the body. 
-These stages are seen clearly in Figure~\ref{fig:verif_flow}.
-Loading the image consists of copying the image out of the Flash Memory (Section~\ref{flash_mem}) and into RAM where pointers to the image are passed around on the C call stack.
+These stages can be seen in Figure~\ref{fig:verif_flow}.
 
+Loading the image consists of copying the image out of the Flash Memory (Section~\ref{flash_mem}) and into RAM where pointers to the image are passed around on the C call stack.
 Verifying the Keyblock consists of using its signature, which is a hash of its full information that is signed by Google's Private key.
 Google's Public Key, which is stored in Read-Only Memory, is used to decrypted the signature, so that it is now only a hash of the Keyblock.
 Finally, the entire Keyblock is hashed, and the two are compared.
@@ -102,11 +111,14 @@ and Operating System.
 
 \subsection{Boot Modes}\label{sec:boot-modes}
 
-Vboot has three major boot states that influence the behavior of the boot. 
+Vboot has three major boot states that influence the program's behavior.
 The first state is the Safe state which goes through the full process of Verified Boot normally.
-The second state is the Recovery state which allows for a broken machine to format itself to its original state.
+The second state is the Recovery state which allows for a broken machine to
+format all memory and revert to a secure state.
 The third state is the Developer state and in this state the RSA signature is not verified.
 The Developer state exists so that hobbyists can write their own firmware boot code and run operating systems other than Chrome OS\@.
+
+\subsubsection{Developer Mode}
 
 Developer mode poses interesting security questions to Verified boot because it essentially disables the security guarantees and allows the system to move into an insecure state~\cite{developer-mode}. 
 There are various security requirements around the Developer state transition.
@@ -124,6 +136,8 @@ If secure storage is left untouched moving from Developer Mode to Safe Mode, the
 The assumptions that Google places on secure storage require that it can only be written to and read from by Google.
 The platform will not be able to recognize if secure storage is in an insecure or malicious state and so wiping it is the easiest way to ensure that the platform has full control.
 On the transition from Developer to Safe Mode, the system has to go through Recovery Mode.
+
+\subsubsection{Recovery Mode}
 
 Recovery Mode is responsible for getting the system back to a secure state.
 Recovery Mode will be activated automatically when an error is recognized in Vboot.
@@ -215,8 +229,7 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{code_repos}
-  \caption{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}
-  \label{fig:code_repos}
+  \caption{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}\label{fig:code_repos}
 \end{figure}
 \begin{figure}
   \centering
@@ -224,7 +237,6 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
   \caption{This report's boot flow uses QEMU's default bootloader Firmware, then
   a created C wrapper for the TPM and Debugging Output, and Vboot for the
   verification}
-  \label{fig:code_repos}
 \end{figure}
 
 \subsubsection{Coreboot}\label{coreboot}

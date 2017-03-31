@@ -8,33 +8,21 @@
 \section{Hardware Design}
 
 % TODO: Should these paragraphs be moved somewhere?
-Verified Boot is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
-A bootloader is the first program that runs when a computer is initially turned
-on.
-A bootloader is responsible for initializing the computer's hardware and
-loading the rest of the Operating System.
-A secure bootloader is one that checks the code that it is loading for security
-properties, and will only load an OS that passes these checks~\cite{secure-bootloader}.
-Verified Boot checks that the OS it is loading has been signed by Google and is
-unmodified.
 
-Checking that code originated from Google and has not been modified is
-accomplished by cryptographic functions like hashing and signing.
+This section describes the Hardware design of Google's Verified Boot. 
+Because Verified Boot is the first software run on a Chromebook, it is
+responsible for initializing all of the system's hardware modules.
+
+Verified boot main job is to check that the image being loaded originated from
+Google and has not been modified. 
+This is accomplished by cryptographic functions like hashing and signing.
 These functions can be computationally expensive and they are used often in a
-modern computer, so they are good candidate for Hardware accelerators.  
+modern computer, so they are good candidate for hardware modules.  
 
-Verified Boot is a good candidate for this report because its execution relies
-on both Hardware and Software.
-As a program, Verified Boot makes security guarantees, like an attacker is not
-able to modify the Operating System of a Chromebook. 
-A bug in Verified Boot would compromise the security of a personal laptop,
-meaning that this is a good candidate for Formal Verification.
-Additionally, Google has released both Verified Boot and Chrome OS as Open
-Source software, meaning verification can be run directly on industry code.
-
-
-Because of this, the bootloader is responsible for doing all system initialization, including hardware initialization of modules.
-The bootloading process must also complete before any of the other platform code is run, meaning that program speed is important. 
+The hardware modules can be broken into two groups, secure storage and hardware accelerator.
+For secure storage there is an Flash memory module that provides non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
+For hardware accelerators there are the cryptographic accelerator that
+implements the Secure Hash Algorithm (SHA) 
 
 While the code for Vboot is Open Sourced and available online, the laptop's
 hardware does not have source code available.
@@ -46,10 +34,6 @@ While this means that verification was being done on different hardware, the
 same techniques can easily be applied if the Chromebook hardware was ever
 released.
 
-The hardware modules can be broken into two groups, secure storage and hardware accelerator.
-For secure storage there is an Flash memory module that provides non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
-For hardware accelerators there are the cryptographic functions implementing Secure Hash Algorithm (SHA) and RSA encryption. 
-
 \subsection{Flash Memory}\label{flash_mem}
 
 The Flash Memory is an amount of extra non-volatile memory connected to every Chromebook. 
@@ -57,34 +41,35 @@ The Flash Memory contains both a Read-Only section and a Read-Write section of m
 The Read-Only section is arguably the most important piece of hardware because it is the Root of Trust of the Vboot system.
 Root of Trust means that the memory within the Read-Only section is assumed to be correct.
 The code within this section is the root, or base, that is responsible for verifying the rest of the Vboot process.
-This code can be assumed to be untampered because it is located within the Read-Only section.
-The Read-Only section is enforced by a physical screw, the Write Protect screw, which is located in the laptop.
+The Read-Only section is assumed to be untampered because it can only be written
+to by Google when the laptop was created.
+The Read-Only section is enforced by a physical screw, called the Write Protect screw, which is located in the laptop.
 Removing this screw removes the Root of Trust, but doing so voids the laptop's warranty.
 
 The Read-Only memory is flashed into the laptop when the Chromebook is being built in the factory, before the Read-Only screw is added to the casing. 
 The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
 In this way the RO Flash acts as the ``Root of Trust'' for the system.
-In security terms, the Verified Boot process should be secure as long as the Root of Trust holds.
-Inversely, if someone removes the WP screw, none of the Verified Boot security properties will hold.
+In security terms, the Verified Boot process claims to be secure as long as the
+Root of Trust holds (this is the claim that I will verify).
 
 Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
 The memory is organized according to the Flashmap which I have included in the appendix.
 The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
-For reasons I will mention in Section~\ref{qemu_em}, the Flash Memory will be the one Hardware piece needed for security that will not be emulated or verified.
+The Flash Memory will be the one Hardware piece needed for security that will not be emulated or verified.
 
 \subsection{TPM}\label{sec:TPM}
 
-The Trusted Platform Module\cite{TPM} or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security.
+The Trusted Platform Module or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security\cite{TPM}.
 A cryptographic processor is a processor that implements a variety of
 cryptographic functions, like hashing, encryption and decryption, and random
 number generators. The full list of cryptographic functions can be see in
-Figure~\ref{tpm_hw}.
-Additionally it contains its own storage (volatile and non-volatile), that can be accessed from the main CPU in specific ways.
+Figure~\ref{fig:tpm_hw}.
+Additionally the TPM contains its own storage (volatile and non-volatile), that can be accessed from the main CPU in specific ways.
 For the purpose of this report, the TPM is used as a module that can securely store keys and measurements made by the bootloader.
 
-The Hardware of a TPM can be created by any company, but it must conform to the standards released by the Trusted Computing Group (TCG) \cite{TCG}.
-The TCG has released two specifications of TPMS and they are known as TPMs version 1.2 and 2.0.
+The physical hardware of a TPM can be created by any company, but it must conform to the standards released by the Trusted Computing Group (TCG) \cite{TCG}.
+The TCG has released two specifications of TPMs and they are known as TPMs version 1.2 and 2.0.
 For the scope of this project we will be looking at the TPM 1.2 specification.
 The TPM specification outlines the commands, structures, and interface for the system.
 The TPM commands describe the full functionality of the system by describing each command the main CPU can request.
@@ -101,7 +86,9 @@ The TPM interface describes the registers that are exposed to the CPU and how th
   \centering
   \includegraphics[width=1.0\linewidth]{tpm_regs.png}
 \end{subfigure}
-\caption{On the left we can see the registers of the TPM that are accessed by the CPU~. On the right we can see a HW block diagram of the TPM itself\cite{tpm-slides}.}
+\caption{On the left we can see a HW block diagram of the TPM
+itself\cite{tpm-slides}. 
+On the right we can see the registers of the TPM that are accessed by the CPU.}
 \label{fig:tpm_hw}
 \end{figure}
 
@@ -110,16 +97,22 @@ The TPM interface describes the registers that are exposed to the CPU and how th
 
 The CPU communicates to the TPM by reading and writing specific memory addresses.
 These addresses allow the CPU to send multi-byte commands to the TPM and receive multi-byte responses, even though a single byte is read or written at a time.
-The addresses and names of the registers can be seen in Figure~\ref{tpm_hw}.
+The addresses and names of the registers can be seen in Figure~\ref{fig:tpm_hw}.
 I describe the registers below.
 
 \begin{itemize}
-    \item \code{Status} --- This register allows the CPU to know what state the TPM is currently in. Specifically, there are bits for  if the TPM is currently accepting or sending a command, or if the TPM is busy. Specific values can be written to this register to tell the TPM to start accepting a command, or to run a command that has been sent.
-    \item \code{Burst} --- Reading this register lets the CPU know how many bytes can be read (if sending a command) or written (if receiving a command) at a single time.
+    \item \code{Status} --- Reading this register returns a value with flags
+        that claim if the TPM is accepting a command, sending a command, or
+        busy. Writing specific values to this register can tell the TPM to start
+        accepting a command, or to run a command that has recently been sent.
+    \item \code{Burst} --- Reading this register lets the CPU know how many
+        bytes can be read (if sending a command) or written (if receiving a
+        command) at a single time. This register cannot be written to.
     \item \code{Data} --- Reading this register reads one byte of data from the TPM~. Writing this register sends one byte of data to the TPM~.
 \end{itemize}
 
-% TODO: Should this be itemized or put into a graphic?
+% TODO: Add flow chart
+% TODO: Link to code in Appendix
 Sending a command serially to the TPM works in the following way.
 First, the \code{Command\_Start} value is written to \code{Status}.
 Second, the \code{Burst} register is read to see how many bytes the TPM can accept.
@@ -144,7 +137,7 @@ The goal of a PCR is to store measurements of the system state in a secure way.
 PCRs are secure storage because they cannot be written to directly, they are either extended or reset. 
 PCRs are extended by concatenating the current the current PCR value with the input, and then storing the SHA1 hash of the result. 
 Resetting the PCR changes the value to all zeros, although the PCRs used by VBoot have the reset functionality disabled.
-There are three commands that deal with PCRs: \code{PCR\_Extend},
+The TCG states that only three commands affect PCRs: \code{PCR\_Extend},
 \code{PCR\_Read}, and \code{PCR\_Reset}.
 PCRs can also be locked, meaning that they are then unable to be extended or reset for the remainder of the system's power cycle.
 The TCG specifications of these commands are included in the Appendix.
@@ -154,7 +147,9 @@ The hardware diagram of PCR\_Extend can be seen in Figure~\ref{fig:pcr_alg}.
 Because the PCRs store a SHA1 Hash, they are useful for taking the measurement of a system.  
 Hashing is a one way cryptographic function that is used to protect the integrity of a message.
 We can think of a hash as the fingerprint of a message, because it takes an arbitrary length of data and outputs a fixed length (20 bytes).
-The PCRs are iteratively extended with measurements of the system, for example, the hash of the Read Only Firmware, then the hash of the Read Write Firmware, and then the hash of the Kernel.
+The PCRs are iteratively extended with measurements of the system, for example,
+the hash of the Read Only Firmware state, then the hash of the Read Write
+Firmware state, and then the hash of the Kernel state.
 The final result will be identical each time if and only if there were no changes in each of the things being measured.
 By the definition of hashing, it is difficult also to find a fake configuration of the system that will hash to the same value as a correct configuration, meaning that if the hashes are equal it is reasonable to assume that the system is unchanged. 
 
@@ -224,7 +219,7 @@ To run code, I am relying on QEMU's ability to boot any image that starts with a
 QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
 As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this report it was easier to use QEMU's built-in bootloader.
 
-The QEMU code (included in the appendix and the github link), was based off of a project developed for Open Source at Princeton by me and Lance Goodridge.
+The boatloader code that interacted with QEMU (included in the appendix and the github link) was based off of a project developed for Open Source at Princeton by me and Lance Goodridge.
 The Open Source project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
 The Open Source project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
 These tools allowed me to create and compile a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.

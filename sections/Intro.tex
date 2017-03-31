@@ -4,10 +4,10 @@
 
 \section{Introduction}
 
-The importance of computing in modern society can not be overstated. The
-increased responsibilities of computers means that security problems can have
-large impacts on both the personal and societal level.  As the computer industry
-begins to produce laptops, smart phones, servers, and embedded systems, computer
+Computing systems are becoming larger and more complicated, making security
+issues harder to find.
+At the same time security problems are having larger impacts on both the personal and societal level.
+As the computer industry begins to produce laptops, smart phones, servers, and embedded systems, computer
 hardware becomes more diverse and specialized. Diverse hardware increases the
 potential for vulnerabilities, and a hardware vulnerability is difficult or
 impossible to fix without replacing the device. 
@@ -29,29 +29,26 @@ functions interacting together in an undefined way.
 These erroneous interactions are not caught by Unit Testing because by
 definition only individual units are tested together. 
 
-Formal Verification is an enhancement to Unit Testing. 
+Formal Verification can be seen as an enhancement to Unit Testing. 
 Formal Verification is the act of proving or disproving the correctness of a
 function by using mathematical proof techniques. 
 This verification requires that the function's correctness is specified in a
 series of formal properties.
-Once these properties are created, there are current verification methods that
-will produce proofs that a property holds under all possible inputs.
+Once these properties are created, current verification methods 
+will produce proofs that the properties hold under all possible inputs.
 Unlike Unit Testing, Formal Verification tools look at the code itself to quickly find inputs that would violate a user-defined property. 
 
-Formal guarantees that a program is working correctly is very helpful for
-security programs where bugs can release personal information or allow malicious
-behavior.
-Security programs are becoming more complicated, and bugs are becoming more
-harmful.
+Formal Verification guarantees that a program is working correctly. 
+This is very helpful for security programs where bugs can release personal information or allow malicious behavior.
 Formal Verification of programs are becoming more popular as a formal proof of
 a program's correctness provides peace of mind against security bugs.
 However, today's security programs are relying both on software programs and
-hardware modules working together, and there are not industry standards to
+hardware modules working together, and there are no industry standards to
 produce verification across this new boundary.
 
 \subsection{The Hardware-Software Boundary}
 
-Originally a computer was only a general purpose CPU, and software would
+Originally a computer was a general purpose CPU, and software would
 describe how the CPU should perform various tasks.
 Today, computer engineers realize that specialized hardware can perform a single
 task much more quickly than generalized hardware.
@@ -60,8 +57,9 @@ combination of a CPU with smaller hardware modules that perform specialized
 tasks.
 The CPU is still the main processing unit, meaning it is responsible for
 communicating with each hardware module.
+However, the CPU no longer performs all processing in the system.
 
-Some hardware modules are taking responsibility away from software.
+Hardware modules are taking responsibility away from software.
 If software wants to decrypt a message, then it can pass the message to an RSA
 hardware module and receive the decrypted message back.
 This means that the software does not need to implement a decryption function.
@@ -86,8 +84,7 @@ Propositional logic is one of the main ways that properties are specified.
 For example, a programmer could express that given the fact that a password
 check failed, the user should not be allowed to access bank statements.
 If $A$ is access and $P$ is correct password, then the following statement
-describes the property that access cannot ever be given when the password is not
-true.
+describes the property that, ``If access is given, then the Password is true''.
 
 \begin{equation}
     A \to P
@@ -101,20 +98,24 @@ Solvers (SAT solvers)~\cite{validating-sat}. SAT Solvers are well-researched but
 they have known limitations with scaling and with with the types of systems that
 they can describe.
 Additional systems have been used to extend the capabilities of SAT solvers, allowing them to describe more complicated properties and systems. 
-One system is known as Satisfiability Modulo Theories (SMT), which essentially replaces Boolean logic elements with predicates such as inequalities or uninterpreted functions. 
+One system is known as Satisfiability Modulo Theories (SMT), which replaces
+Boolean logic elements (eg: AND, OR) with predicates such as inequalities (eg:
+Less Than, Greater Than) or uninterpreted functions. 
 
-SMT and SAT Solvers are the tools that are used to do Formal Verification
-on Software. Automated tools exist to transform software programs with
+SMT and SAT Solvers are two tools that are used to do Formal Verification. 
+Automated tools exist to transform software programs with
 assertions into an SMT solver for formal verification. 
-One popular tool that will be used throughout the paper is the z3 SMT solver~\cite{z3-smt-solver}.
-Another popular tool is the C Bounded Model Checker (CBMC). 
-These tools will be described fully in the Verification Section. 
+One popular tool that will be used throughout is known as the C Bounded Model Checker (CBMC). 
+This tool automatically transforms software into SMT statements to perform
+Verification.
+More information about Verification tools can be found in
+Section~\ref{sec:Verif}. 
 
 %TODO: Hardware Verification here?
 %TODO: Firmware Verification here?
 
 % TODO: Change Title
-\subsection{Problem Statement and Proposed Contribution}
+\subsection{Problem Statement}
 
 The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
 As this pattern increases the job of verifying functionality becomes more difficult.
@@ -135,6 +136,34 @@ In the past, small SoCs have been created for the purpose of testing verificatio
 These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
 Formal verification has been seen to be successful in analyzing common security protocols such as Secure Boot for small, Open Source SoC designs~\cite{elane}. 
 While example SoCs are useful for the first steps in testing verification methods, these methods will be most useful if they can be applied to large designs that already exist and are in use.
+
+In this thesis I will apply Formal Verification tools to Verified Boot in
+order to test their effectiveness on a large scale system involving both
+Hardware and Software.
+Verified Boot is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
+A bootloader is the first program that runs when a computer is initially turned
+on.
+A bootloader is responsible for initializing the computer's hardware and
+loading the rest of the Operating System.
+A secure bootloader is one that checks the code that it is loading for security
+properties, and will only load an OS that passes these checks~\cite{secure-bootloader}.
+Verified Boot checks that the OS it is loading has been signed by Google and is
+unmodified.
+
+Checking that code originated from Google and has not been modified is
+accomplished by cryptographic functions like hashing and signing.
+These functions can be computationally expensive and they are used often in a
+modern computer, so they are good candidate for Hardware accelerators.  
+
+Verified Boot is a good candidate for this report because its execution relies
+on both Hardware and Software.
+As a program, Verified Boot makes security guarantees, like an attacker is not
+able to modify the Operating System of a Chromebook. 
+A bug in Verified Boot would compromise the security of a personal laptop,
+meaning that this is a good candidate for Formal Verification.
+Additionally, Google has released both Verified Boot and Chrome OS as Open
+Source software, meaning verification can be run directly on industry code.
+\subsubsection{Contributions}
 
 The contributions that this thesis makes are the research into the open source firmware project Verified Boot created by Google; the expansion of the formal verification project into an open source software platform; and the evaluation of bounded model checking on verifying security properties of both hardware and software.
 
