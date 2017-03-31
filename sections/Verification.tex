@@ -22,26 +22,9 @@ modeled after the Firmware originally found in Google's Coreboot repository.
 If Google released the sources for their Hardware, then this testing could be
 performed with no modification to the source code. 
 
-%\subsection{Read-Only Fw Purpose}
-%The Read-Only Firmware's purpose is to provide an initial configuration of the board's hardware and to verify the block of code that has been provided as the Read-Write Firmware.
-%The RO Firmware requires the SHA and RSA accelerators to do cryptographic functions, and the TPM and Flash for secure storage.
-%If Developer Mode or Recovery Mode are enabled then the Keyboard driver is required for user input and the Display driver is required for updating the user with the boot status.
-%If Recovery Mode is enabled then the USB and SD drivers are required so that the recovery image can be read off of external storage.
-%Implementations of all of these drivers are packaged with the RO Firmware so that the Vboot library can succeed.
-%
-%The first thing that RO Firmware is responsible for is loading in all of the Flash memory to RAM so that it is more easily accessible. 
-%After Flash memory is in RAM, data structures like the GBB and the Firmware Image are populated by reading the flash map, which is always stored at a set location (see Figure~\ref{fig:fmap}).
-%Once the data structures are populated and the hardware drivers are loaded, the RO Firmware moves into the Vboot library to verify the firmware image.
-%
-%% RO FW destinations
-%The RO Vboot is responsible for checking the validity of the firmware image validity and either executing the code within the firmware image or failing appropriately.
-%If the firmware image is insecure or the verification process fails for other reasons, it is likely that the system will be rebooted into recovery mode. 
-%RO Vboot is responsible for setting a 32 bit flag known as a ``recovery reason'' for failure. This reason influences the Recovery process and is stored in the read write portion of Flash so that it is consistent across boots. 
+\subsection{Vboot Properties}
 
-
-\subsection{RO Firmware Properties}
-
-The properties that we will be checking can be separated into 4 categories: array accesses, program flow, hyperproperties, and correctness.
+The properties that we will be checking can be separated into 3 categories: array accesses, program flow, and correctness.
 The array access property restricts the writeable addresses in memory to valid array boundaries. 
 Program flow properties refer to the execution path and function call stack throughout the program.
 Correctness properties refer to facts about the code such that, if things were
@@ -134,12 +117,6 @@ In Figure~\ref{fig:verif_flow} we can see that state $s_0$ can transition to eit
 All together these equations fully describe the program flow graph in Figure~\ref{fig:verif_flow}. 
 If these hold then steps will not be skipped in the verification process and we can be assured that verification of the image will be attempted in order.
 
-% \subsubsection{Hyperproperties}
-
-% TODO: Look at this later
-% Verified boot contains many stages and each stage holds multiple flags and meta-data. 
-% We want to make sure that untrusted information does not influence our booting sequence, be
-
 \subsubsection{Correctness properties}
 
 Correctness properties refer to the code itself and help to determine if it has been written correctly.
@@ -202,7 +179,7 @@ CBMC library.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\linewidth]{CBMC_api.png}
+  \includegraphics[width=0.7\linewidth]{CBMC_api.png}
   \caption{The figure on the left describes the transformation that a C
   program undergoes to be verified. The right describes the CBMC API.}\label{fig:CBMC_api}
 \end{figure}
@@ -228,8 +205,10 @@ exhaustively checks user assertions against all possible integer values.
 
 In order to get CBMC running, certain limitations had to be observed.
 The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
-This loop unroller is not able to unroll loops where the upperbound is data dependant, so these loops must either be avoided, or a limitation can be placed on the unrolling through the commandline. 
-If the manually unrolling limitation is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
+This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
+Data Dependant loops need to have their unrolling amount specified by the user.
+However, incorrect unrolling can lead to problems with verification.
+If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
 % TODO: may want to remove this bit about Memcpy
 Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
 Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
@@ -274,18 +253,22 @@ This solver outputs unSAT if the assertions hold and SAT if they do not.
 \subsubsection{LoadFirmware}
 
 The LoadFirmware function is where the main work is done in the Read-Only Vboot process.
-LoadFirmware is responsible for calling functions that  Keyblock, Preamble, and Image verification.
-When LoadFirmware returns, it will have set the pass or fail statuses of both Firmware Images.
+LoadFirmware is responsible for investigate Firmware images A and B, and seeing which image (if any) are correct and can be loaded.
+LoadFirmware drives the  Keyblock, Preamble, and Image verification.
+When LoadFirmware returns, it will have set the pass or fail statuses of both Firmware Images, and control will pass to a working Image.
 
-All CBMC test results can be seen in Table~\ref{ldfw_results}. 
-The Google unit tests involve adding a wrapper around Google's assertions within Vboot such that they hook into CBMC assertions.
-This test shows that CMBC can be easily adapted into an existing framework and prove that Google specific assertions will not be thrown under any input.
-The Rollback test checks that under no input conditions will LoadFirmware choose a firmware image with a lower version number (see Property~\ref{eq:rollback}).
-In order to check that Rollback was working correctly, Rollback/rec tests that for rollback conditions without realizing that Rollback is allowed under recovery. 
-The Rollback/Dev test correctly finds the counter-example where rollback is allowed and we can see that the recovery flag is enabled.
-Hash Failure tests Property~\ref{eq:hash_cor}, or that it is impossible to verify an image as correct if the VbExHashFirmwareBody function returns an error.
-RSA Failure tests Property~\ref{eq:sig_cor}, or that is impossible to verify an image as correct if the RSA key is formatted incorrectly or one of the Verify functions returns an error.
-Array accesses check for all array bounds errors.
+The CBMC test results for this function can be seen in Table~\ref{ldfw_results}. 
+Below is an itemized list of what each test is verifying.
+% TODO: Create better explanation of Google's assertions
+% This test shows that CMBC can be easily adapted into an existing framework and prove that Google specific assertions will not be thrown under any input.
+\begin{itemize}
+ \item  Google unit tests -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
+ \item  rollback test -- tests that under no input conditions will LoadFirmware choose a firmware image with a lower version number (see Property~\ref{eq:rollback}).
+ \item  rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
+ \item  hash failure -- tests that it is impossible to verify an image as correct  if hashing the Firmware body (the VbExHashFirmwareBody function) returns an error (see Property~\ref{eq:hash_cor}).
+ \item  RSA failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
+ \item  Array accesses -- check for all possibilities of array bounds errors.
+\end{itemize}
 
 \begin{table}[]
     \centering
@@ -312,11 +295,11 @@ It is responsible for loading flags in from secure storage and for accessing the
 VbSelectFirmware is also responsible for locking the TPM's firmware version before control passes to the firmware image and updating the version if a newer image has been loaded.
 This function's final responsibility is to load TPM's PCR0 with the hash of the boot flags.
 
-The TPM test for for this function is a series of correction properties. 
-These assertions claim that the TPM must always be locked, and that VbSelectFirmware will not be successful if any of the TPM functions return an error.
-
-The LoadFirmware test for this function simply checks that VbSelectFirmware will not not be successful if LoadFirmware returns an error.
-This is necessary for the properties checked in LoadFirmware to propagate up to the entire boot flow, and it is what allows for our function abstractions.
+\begin{itemize}
+ \item  TPM locking -- tests that it is not possible for the function to return success if it is unable to lock the TPM
+ \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
+ \item  Array accesses -- check for all possibilities of array bounds errors.
+\end{itemize}
 
 \begin{table}[]
     \centering
