@@ -315,31 +315,51 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
 
 \subsection{TPM Properties}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{tpm_call_graph}
+  \caption{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
+\end{figure}
+
 The Read-Only Firmware is responsible for setting up the TPM and protecting its
 sections against the rest of the system that will eventually be loaded.
-TPM's responsibilities from Chrome are to securely store the boot state and to protect against rollback attacks. 
-Chrome's responsibilities for the TPM are to make sure that it is lead through
-its self-check, that physical presence is disabled, and that the data zones
-required by Chrome exist within the TPM's non-volatile state.
+TPM's responsibilities from Chrome are to securely store the boot state and the
+version state.
+TPM's storage of the version state allows Vboot to claim that it protects against 
+an attacker loading an older, less secure image from Google (Rollback attack).
+TPM's storage of the boot state allows Vboot to claim protection against an attacker loading a Google Developer image onto a non-developer machine.
+
+In earlier sections we checked software properties by abstracting the TPM to a simple storage array. 
+This allowed us to check the larger rollback and protection properties, although we were assuming that the TPM Firmware functions were working correctly.
+Now, we will be using the TPM's Firmware and an abstraction of Hardware to verify correctness of the TPM's Firmware functions.
+
+The main bulk of properties that we will be checking are Correctness and Liveness properties. 
+I will also mention how the TPM handles concurrency, and why this does not allow us to check possible properties.
 
 % Physical Presence
 % http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
-Chrome disables the physical protection in the RO Firmware.
-Physical presence is something that can be set high or low on a TPM either through software commands or a hardware wire. 
-If Physical Presence is set high, then the ownership of the TPM can be changed and the re-provisioning operations become available.
-For this reason, Chrome completely disables this option by permanently locking the TPM to a low Physical Presence\@.
 
 % Rollback Attack
-% TODO: Rollback attack visual
-The other thing that the TPM protects from is Rollback Attacks.
-In this situation a rollback attack is when older software with known
-vulnerabilities replaces newer, protected software in a malicious ``upgrade.''
-This attack works against a naive implementation because the attacker is relying on an older version of ChromeOS that is available, and unmodified.
-Because the attacker is using Google's software, the software is signed by Google's private key and will be accepted by the VBoot algorithm.
 
 \subsubsection{ILA for Hardware}   
 
 \subsubsection{Verifying TPM with ILA}   
+
+%TODO get graph of Vboots TPM functions
+Some properties are possible to prove using Hardware and Firmware separately.
+The first run is showing that each TPM function will only return true if it receives the ``success'' back from the TPM\@.
+Once we have this property we can also prove that the TPM will only return the ``success'' value if its operations are completed successfully. 
+Combining these two properties can give us an idea of correctness for the system.
+
+However, there are some properties that are much easier to prove with the 
+Hardware and Firmware together.
+In the third run we have the property that the firmware will always read every available byte from the TPM command fifo.
+This property is important to show the Firmware is correct and it relies on interactions between Hardware and Firmware.
+The fourth run checks that each function will always return. 
+This is important for liveness, because if the Firmware is stuck polling a register forever then the system will not boot.
+
+%TODO: Get TPM CBMC table up and running here
+
 \clearpage
 
 \end{document}

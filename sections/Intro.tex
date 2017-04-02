@@ -150,11 +150,6 @@ properties, and will only load an OS that passes these checks~\cite{secure-bootl
 Verified Boot checks that the OS it is loading has been signed by Google and is
 unmodified.
 
-Checking that code originated from Google and has not been modified is
-accomplished by cryptographic functions like hashing and signing.
-These functions can be computationally expensive and they are used often in a
-modern computer, so they are good candidate for Hardware accelerators.  
-
 Verified Boot is a good candidate for this report because its execution relies
 on both Hardware and Software.
 As a program, Verified Boot makes security guarantees, like an attacker is not
@@ -163,6 +158,7 @@ A bug in Verified Boot would compromise the security of a personal laptop,
 meaning that this is a good candidate for Formal Verification.
 Additionally, Google has released both Verified Boot and Chrome OS as Open
 Source software, meaning verification can be run directly on industry code.
+
 \subsubsection{Contributions}
 
 The contributions that this thesis makes are the research into the open source firmware project Verified Boot created by Google; the expansion of the formal verification project into an open source software platform; and the evaluation of bounded model checking on verifying security properties of both hardware and software.
