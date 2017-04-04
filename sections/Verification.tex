@@ -343,7 +343,7 @@ I will also mention how the TPM handles concurrency, and why this does not allow
 
 \subsubsection{ILA for Hardware}   
 
-\subsubsection{Verifying TPM with ILA}   
+\subsubsection{TPM Properties}   
 
 %TODO get graph of Vboots TPM functions
 Some properties are possible to prove using Hardware and Firmware separately.
@@ -359,6 +359,24 @@ The fourth run checks that each function will always return.
 This is important for liveness, because if the Firmware is stuck polling a register forever then the system will not boot.
 
 %TODO: Get TPM CBMC table up and running here
+
+\subsubsection{Verifying TPM with ILA}   
+
+In order to check the TPM, the Vboot firmware had to use the TPM registers and
+command flow  described in Section~\ref{tpm_cmd_regs}.
+To accomplish this, I built an abstraction of the TPM using the ILA Framework.
+The ILA Framework allowed me to program a description of the TPM registers and
+command functionality.
+This description (referred to as a template), then used the SW TPM library to
+verify that the template behaved in the same way as the original TPM. 
+The ILA Framework then produced a specification that could be verified with the
+original Vboot software.
+
+The TPM ILA code can be seen in the appendix.
+The file \code{TPM\_template.py} is the ILA template.
+The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
+I used for verification.
+The simulator and the template are a formal description of the TPM's registers and command behavior that I outlined previous in Section~\ref{tpm_cmd_regs}. 
 
 \clearpage
 
