@@ -254,7 +254,7 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
   \includegraphics[width=0.45\linewidth]{qemu_repos}
   \caption{This report's boot flow uses QEMU's default bootloader Firmware, then
   a created C wrapper for the TPM and Debugging Output, and Vboot for the
-  verification}
+  verification}\label{fig:qemu_repos}
 \end{figure}
 
 \subsubsection{Coreboot}\label{coreboot}
@@ -269,15 +269,6 @@ Coreboot is setup so that once a baseline level of initialization is complete, i
 This payload is responsible for initializing the more specialized drivers, and the concept of a payload means that Google can keep support more hardware without altering the Coreboot source code.
 The payload that Coreboot calls to further initialize the Chromebook is Depthcharge.
 % Init done in src/mainboard/google/{link}/romstage.c
-
-% \subsubsection{DepthCharge}
-% 
-% Depthcharge contains the minimum number of drivers necessary for the virtual boot to work successfully~\cite{depthcharge-codebase}. 
-% The important drivers include the TPM, I2C, the EC, SPI and SPI Flash, and the display~\cite{depthcharge-slides}.
-% Once the drivers are initialized successfully, Depthcharge creates the necessary structures for Vboot and then passes control into the Vboot library.
-% 
-% Depthcharge is Google's repo that holds platform dependent code.
-% The different branches in the repository hold different drivers as they are needed for each of the Chromebook's hardware.
 
 \subsubsection{Vboot\_reference}
 
@@ -310,7 +301,13 @@ Fifo\cite{SWTPM}, and the TPM Register Interface\cite{TPMQEMU}.
 More information about installing the Software TPM libraries can be found in the
 appendix.
 
-% TODO: C Wrapper Sub section
+\subsubsection{CBMC-Vboot}
 
+The CBMC-Vboot is my personal repository for code\cite{my-repo}.
+The layout of this repository is discussed in the Appendix.
+We can see in Figure~\ref{fig:qemu_repos} that it is used as a wrapper to tie
+Vboot together with QEMU and the SWTPM libraries.
+It also holds python scripts which run the CBMC tests that I will describe in
+Section~\ref{sec:Verif}.
 
 \end{document}
