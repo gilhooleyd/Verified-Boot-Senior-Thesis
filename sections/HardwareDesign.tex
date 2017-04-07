@@ -227,8 +227,12 @@ These tools allowed me to create and compile a standalone C file that could hook
 The QEMU emulator was modified to add a TPM and a SHA module, but as mentioned in Section~\ref{flash_mem} it does not include the Flash Memory.
 While the Flash Memory is important as a Root of Trust in the System, its purpose is very simple.
 Its main function is to provide read-only storage, and this is not a property that is difficult to be checked.
-Instead of adding Flash Memory to the QEMU emulation, I load the Vboot code in with the image using the linker script. %TODO link to Linker script
-The linker script loads in different sections that would correspond to the Flash Memory, and these sections are accessed normally in RAM instead.
+Instead of adding Flash Memory to the QEMU emulation, I package the firmware
+image with code binary using a specialized linker script. %TODO link to Linker script
+The linker script loads the firmware image into the binary, and then QEMU loads
+the binary into memory.
+The firmware image would normally be located in the Flash Memory, but it is now
+located in RAM.
 
 % TODO: Get the SHA working
 % Using my own SHA implementation, close to the one used by coreboot
@@ -236,28 +240,52 @@ The linker script loads in different sections that would correspond to the Flash
 \subsection{Instruction Level Abstraction (ILA)}
 
 I am using a tool to create an Instruction Level Abstraction (ILA) of Hardware.
-The ILA is used to create an abstraction of the TPM and SHA module that can be
+The ILA is used to create an abstraction of the TPM and the SHA module that can be
 easily verified.
 Verifying Firmware is difficult because it accesses Hardware by writing to
-memory-mapped registers that trigger Hardware events.
-Using a Software only model checker like CBMC will only see these writes
+memory-mapped registers that trigger hardware events.
+Using a software only model checker like CBMC will only see these writes
 and reads to addresses, and it will not understand that a single write
 corresponds to an entire Hardware operation.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{ILA_flow.png}
+  \caption{A flowchart of how ILA is used in the Verification process.
+  In this report, ILA is used to combine the hardware model with the C program for CBMC verification.}
+  \label{fig:ILA_flow}
+\end{figure}
 
 ILA provides a way to ``precisely capture updates to all firmware-accessible
 states spanning cores, accelerators, and peripherals''\cite{ila-template}.
 An ILA is created from either a C or Verilog program that represents the
 Hardware.
-This program is referred to as the Oracle, and the resulting abstraction from
-the ILA will capture the Oracle's behavior. %TODO: bad wording
-A programmer must manually create an ILA template that describes each state of
-the Hardware and each of the states possible updates.
-The template is focused on the ``instructions'' of a Hardware module, and it is
-programmed using the standard Fetch, Decode, Execute module of a Computer CPU\@. 
-Completing the template involves manually specifying hardware state, possible
-inputs (Decode), and possible updates (Execute).
-Once the template is complete, the ILA library uses the Oracle to fill in the
-holes of which Decode values correspond to which functions the system Executes.
+To create an ILA, a programmer defines a ``template'' in python describing the
+hardware.
+The ILA library then verifies this template against the given C or Verilog
+program to ensure that they exhibit the same behavior.
+This is known as ``synthesizing'' the template into an ILA model.
+The template describes each element of the hardware's state and gives a list of
+how each state can be updated.
+The synthesis method uses the C or Verilog program to determine when the update
+functions defined by the template are activated.
+
+The template is defined using standard update terminology for hardware, which
+uses the idea of separate Decode and Execute stages.
+The template's Decode stage specifies which state elements correspond to unique
+instructions.
+For any modules with memory mapped registers, the address of the register being
+accessed, and any write information will be included in the Decode stage. 
+For the TPM, the command ordinal is also included in the decode stage because
+that value determines which instruction will be executed. %TODO: cite
+The Execute stage involves the state update functions, and it depends on the
+values in the Decode stage.
+For example, the TPM ordinal determines if the TPM will execute a hashing
+function or a locking function.
+Actually executing the function is the purpose of the Execute stage.
+The ILA synthesis is responsible for automatically mapping the Decode stage to
+the Execute stage, and it uses the C or Verilog program to perform this mapping
+such that the behavior of the two programs are identical.
 
 The ILA template that is created captures the interface of the Hardware.
 It produces an abstraction that is aware of how the Hardware reacts to Reads and
