@@ -112,11 +112,29 @@ and Operating System.
 \subsection{Boot Modes}\label{sec:boot-modes}
 
 Vboot has three major boot states that influence the program's behavior.
-The first state is the Safe state which goes through the full process of Verified Boot normally.
+The first state is the Secure state which goes through the full process of Verified Boot normally.
 The second state is the Recovery state which allows for a broken machine to
 format all memory and revert to a secure state.
 The third state is the Developer state and in this state the RSA signature is not verified.
 The Developer state exists so that hobbyists can write their own firmware boot code and run operating systems other than Chrome OS\@.
+
+The transitions allowed between the states can be seen in
+Figure~\ref{fig:mode_fsm}.
+On each transition, Vboot is responsible for taking steps to ensure that
+security is preserved. 
+These responsibilities are also seen in the figure.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{mode_fsm.png}
+  \caption{The FSM for the boot modes. \\
+  1. The TPM's nonvolatile storage and keys are wiped. The user's data
+  is erased. \\
+  2. The laptop is booted into Recovery, Vboot installs a Chrome USB.
+  \\
+  3. The TPM's storage goes through reconfiguration. The entire disk is wiped.
+  \\}\label{fig:mode_fsm}
+\end{figure}
 
 \subsubsection{Developer Mode}
 
