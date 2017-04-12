@@ -263,26 +263,30 @@ counterexamples.
 This abstraction was taken from an earlier thesis that also performed Formal
 Verification~\cite{elane}. 
 
-% TODO: Re-Write this
-The final abstraction involves pointer manipulation and allocating memory. 
-Most Vboot data structures contain offsets to other data structures, not full
+The final abstraction is the creation of a simple memory allocation function so
+CBMC will handle pointer manipulation correctly.
+Vboot data structures contain offsets to other data structures, not full
 pointers. 
-This makes sense because the data structures are loaded in from disk and they do
-not know what addresses they will be loaded in to.
-Pointer arithmetic is necessary to find the location of the next data structure.
-The following code shows the arithmetic needed
-% TODO: Write this
+Vboot uses offsets because the data structures are loaded from disk and there is
+no guarantee that the data will be loaded into a specific address.
+(There is however, a guarantee that the data will be loaded contiguously)
+The following code shows the simple pointer arithmetic needed for offsets.
+
 \begin{equation} \label{eq:ptr}
-    \lnot \text{imgA.pass} \land \lnot \text{imgB.pass} \to XF (\text{pass} = F)
+\begin{split}
+    \code{uint32\_t offset = \&data - \&image;} \\
+    \code{void *data\_ptr = \&image + offset;} 
+\end{split}
 \end{equation}
+
 However, CBMC will not perform pointer arithmetic unless the original pointer
 was set to a specific value.
-In order to assign correct values and have CBMC treat pointers correctly, a
-small memory management implementation was needed.
-The simplest possible implementation was used.
-Memory starts at dress 0x0 and increases as needed. Memory is never reclaimed.
+A small memory management function was created to assign pointer values to data
+structures so CBMC would perform the correct arithmetic.
+In this abstraction memory addresses start at 0x0 and increase as needed.
+Memory is never reclaimed.
 The idea for this abstraction originated from the work done in modeling memory
-by Franjo Ivancic~\cite{eff-model-check}.
+by Franjo Ivancic\cite{eff-model-check}.
 
 \subsubsection{Function Definitions}
 
