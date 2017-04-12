@@ -6,21 +6,18 @@
 \pagebreak
 \section{Verification}\label{sec:Verif}
 
-In this section I will discuss the security properties used by each section of
-Verified Boot. These properties have been mentioned earlier, but they are
-formalized in this section.
+In this section I will discuss the security properties used by the Read-Only
+section of Verified Boot. 
 Later in the section I verify these properties on the Hardware and
 Software system that I outlined in Section 2 and Section 3.
-Properties in software are checked using CBMC, where properties across the Hardware-Firmware boundary are checked using ILA.
-
-All properties are being defined on the Read-Only Firmware of Verified boot.
 The code for Verified Boot is taken from an unmodified vboot\_reference repository provided by Google. 
-When secure promises cross the Hardware-Firmware boundary, they are evaluated
-using the Hardware I selected in Section 2.
 The Firmware that interacts with this Hardware was created by me, however it was 
 modeled after the Firmware originally found in Google's Coreboot repository. 
 If Google released the sources for their Hardware, then this testing could be
 performed with no modification to the source code. 
+
+Properties in software are checked using CBMC, and Hardware modules are
+converted into C using the ILA toolchain.
 
 \subsection{Vboot Properties}
 
@@ -36,7 +33,18 @@ CTL adds temporal distinctions over propositional logic and this allows one to e
 The boolean connectives in propositional logic are $\lnot$ for NOT, $\land$ for
 AND, $\lor$ for OR, and $p \to q$ for $p$ implies $q$.
 CTL describes how propositional logic changes through time.
-In CTL $Xp$ indicates that $p$ is true in the next state; $Fp$ indicates that $p$ is true eventually; $Gp$ indicates that $p$ is always true.
+Table~\ref{ctl_syn} describes the CTL syntax.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{A description of the CTL syntax}\label{ctl_syn}
+    \begin{tabular}{|l|l|}
+        \hline
+        $Xp$ & $p$ is true in the next state\\ \hline
+        $Fp$ & $p$ is true eventually\\ \hline
+        $Gp$ & $p$ is always true\\ \hline
+    \end{tabular}
+\end{table}
 
 \subsubsection{Memory Access Locations}
 
@@ -177,49 +185,57 @@ then uses a SAT solver to check it against the user's specification.
 The specification is user defined, using an API of C functions defined by the
 CBMC library. 
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.7\linewidth]{CBMC_api.png}
-  \caption{The figure on the left describes the transformation that a C
-  program undergoes to be verified. The right describes the CBMC API.}\label{fig:CBMC_api}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.7\linewidth]{CBMC_api.png}
+%   \caption{The figure on the left describes the transformation that a C
+%   program undergoes to be verified. The right describes the CBMC API.}\label{fig:CBMC_api}
+% \end{figure}
 
-As we can see from Figure~\ref{fig:CBMC_api}, the CMBC API is very simple.
-The \code{assert} function is the function used to describe the properties that
-were outlined in the last section. 
-The function takes in a boolean expression, and it is straightforward to
-transform the propositional logic to a boolean expression in C.
-If the boolean expression evaluates to \code{False}, then CBMC throws an error
-and a ``counterexample''.
-This counterexample is all of the program inputs and steps that led to this
-assertion being False.
-The \code{nondet\_int} function is used to model user input to the Vboot process.
+The CMBC API is very simple.
+The list below describes the 3 functions in the CBMC API.
+
+\begin{itemize}
+    \item \code{assert(bool e)} -- takes in a boolean expression and throws
+        exception if false.
+    \item \code{nondet\_int()} -- returns a non-deterministic integer.
+    \item \code{assume(bool e)} -- takes in a boolean expression and forces any
+        non-deterministic variables to conform.
+\end{itemize}
+
+If the \code{assert()} function throws an exception then CBMC will produce a ``counterexample''.
+A counterexample lists the program inputs and steps taken that caused the false
+assertion.
+The \code{nondet\_int()} function is very helpful to model user input to the Vboot process.
 Any data that could be modified by the user could feasibly take any
-value.
-To model this, \code{nondet\_int} is a function that returns a
-``non-deterministic'' integer. 
-Non-deterministic means the return integer can take any value, and CBMC
-exhaustively checks user assertions against all possible integer values.
+value, and this is represented cleanly by a non-deterministic integer.
+CBMC exhaustively checks user assertions against all possible non-deterministic
+integer values.
 
-\subsubsection{Known CBMC Limitations}
-
-In order to get CBMC running, certain limitations had to be observed.
-The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
-This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
-Data Dependant loops need to have their unrolling amount specified by the user.
-However, incorrect unrolling can lead to problems with verification.
-If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
-% TODO: may want to remove this bit about Memcpy
-Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
-Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
+% \subsubsection{Known CBMC Limitations}
+% 
+% In order to get CBMC running, certain limitations had to be observed.
+% The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
+% This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
+% Data Dependant loops need to have their unrolling amount specified by the user.
+% However, incorrect unrolling can lead to problems with verification.
+% If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
+% % TODO: may want to remove this bit about Memcpy
+% Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
+% Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
 
 \subsection{Verifying Vboot with CBMC}
 
+\subsubsection{Abstractions}
+
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
-Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 4GB of RAM on my local machine and then be cancelled.
+Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 8GB of RAM on my local machine and then be cancelled.
 In order to check properties, abstractions needed to be found such that parts of the Vboot flow could be checked at a single time.
-The key insight that was used for this project is that individual functions are essentially self contained and can be abstracted away based on the properties that one desires to check.
-Each function throughout Vboot returns an error code if it is not successful.
+
+The key abstraction used by this thesis is that individual functions are mostly
+self contained.
+This leads to a natural level abstraction at the function definition.
+Each Vboot function returns 0 if successful and an error code if it is not successful.
 When a function is abstracted away, it is programmed to return a
 non-deterministic value.
 If the non-deterministic value is zero (success), then the minimal amount of external changes (if any) should be applied to the larger function.
@@ -229,6 +245,8 @@ This method is an over-abstraction of a functions found in the Vboot library.
 An over-abstraction contains the full set of states found in the original function, plus additional states that would not be possible.
 Because the over-abstraction is a super-set of the original states, any properties that are proved with the over-abstraction will also be proved on every state of the original function.
 Therefore any properties proved with abstracted functions will also hold if the real functions were left in place.
+
+\subsubsection{Function Definitions}
 
 \begin{figure}
   \centering
