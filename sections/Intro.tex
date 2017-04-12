@@ -75,7 +75,6 @@ algorithms.
 
 \subsection{Existing Verification Techniques}
 
-Formal Verification of software is a well researched area and there are several approaches that have been used for formal verification.
 Formal Verification is defined as the application of mathematical methods to
 prove or disprove the specification of a system~\cite{greenstreet}.
 To use Formal Verification, properties of a system have to be specified by the
@@ -102,68 +101,101 @@ One system is known as Satisfiability Modulo Theories (SMT), which replaces
 Boolean logic elements (eg: AND, OR) with predicates such as inequalities (eg:
 Less Than, Greater Than) or uninterpreted functions. 
 
-SMT and SAT Solvers are two tools that are used to do Formal Verification. 
-Automated tools exist to transform software programs with
-assertions into an SMT solver for formal verification. 
-One popular tool that will be used throughout is known as the C Bounded Model Checker (CBMC). 
-This tool automatically transforms software into SMT statements to perform
-Verification.
+SMT and SAT Solvers are two tools that perform Formal Verification. 
+Automated tools exist to transform software programs with assertions into SMT statements.
+This means that software can be easily verified by SMT solvers.
+One popular tool that will be used in this report is the C Bounded Model Checker (CBMC). 
+This tool automatically transforms software into SMT statements and verifies
+user assertions.
 More information about Verification tools can be found in
 Section~\ref{sec:Verif}. 
 
-%TODO: Hardware Verification here?
-%TODO: Firmware Verification here?
-
-% TODO: Change Title
 \subsection{Problem Statement}
 
 The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
 As this pattern increases the job of verifying functionality becomes more difficult.
 Software and Hardware can be verified as separate units but this misses bugs
 that exist as a result of the interaction between the two.
-Firmware is difficult to verify because it requires both Software and Hardware
-working together.
+Firmware, the boundary between Software and Hardware, is difficult to verify 
+because it requires both working together.
 
-% TODO: Move this to an ILA explanation paragraph 
-Tools are needed for allowing Hardware to be used in conjunction with Software for formal verification.
-Instruction Level Abstraction (ILA) is a technique that allows Hardware to
-be defined as a collection of instructions that are used by Software~\cite{ila}.
-This technique claims to allow firmware and hardware to be verified simultaneously and at scale using formal methods.
-
-In order to show the full benefits of formal verification on SoCs, the hardware
-and software of the SoC needs to be available for testing.
 In the past, small SoCs have been created for the purpose of testing verification.
 These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
-Formal verification has been seen to be successful in analyzing common security protocols such as Secure Boot for small, Open Source SoC designs~\cite{elane}. 
-While example SoCs are useful for the first steps in testing verification methods, these methods will be most useful if they can be applied to large designs that already exist and are in use.
+Formal verification has been seen to be successful in analyzing security
+protocols such as Secure Boot~\cite{elane}, Remote
+Attestation~\cite{trustfound}, and Loading Firmware~\cite{load-protocol}. 
+However, most research papers create their own SoCs from Open Source hardware
+and develop their own firmware for verification.
+While these papers are useful, they do not say much about the application of
+Formal Verification to industry SoCs or industry Firmware.
+SoCs and Firmware used by industry are typically much larger and more
+complicated, which makes them more challenging for Formal Verification.
+Additionally, other Formal Verification papers design techniques specific to a
+single application, without considering the extension of a Framework for
+generic Hardware Software testing.
 
-In this thesis I will apply Formal Verification tools to Verified Boot in
-order to test their effectiveness on a large scale system involving both
-Hardware and Software.
-Verified Boot is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
-A bootloader is the first program that runs when a computer is initially turned
-on.
+A standard tool for verification across the Hardware Software boundary would
+greatly speed up the verification of different systems.
+Throughout this paper, I will be using an Instruction Level Abstraction (ILA) to
+define all Hardware Software interactions.
+An ILA defines Hardware as a collection of instructions that can be used by
+Software through accessing specific registers~\cite{ila}.
+The ILA toolchain provides a way to ``precisely capture updates to all firmware-
+accessible states spanning cores, accelerators, and peripherals''
+\cite{ila-template}.
+This technique claims to allow software and hardware to be verified simultaneously and at scale using formal methods.
+It is my hope that the extensive nature of the ILA hardware descriptions allow
+them to be used in other projects, while the effectiveness of the ILA abstraction
+in a large system displays its use in future papers. 
+
+This thesis will be applying formal verification techniques to Google Chrome's
+Verified Boot.
+Verified Boot is a large scale, security based program that spans the Hardware
+Software boundary. 
+It is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
 A bootloader is responsible for initializing the computer's hardware and
 loading the rest of the Operating System.
-A secure bootloader is one that checks the code that it is loading for security
-properties, and will only load an OS that passes these checks~\cite{secure-bootloader}.
+A secure bootloader will only load an OS that passes specific
+security checks~\cite{secure-bootloader}.
 Verified Boot checks that the OS it is loading has been signed by Google and is
 unmodified.
 
 Verified Boot is a good candidate for this report because its execution relies
 on both Hardware and Software.
-As a program, Verified Boot makes security guarantees, like an attacker is not
-able to modify the Operating System of a Chromebook. 
-A bug in Verified Boot would compromise the security of a personal laptop,
-meaning that this is a good candidate for Formal Verification.
+The Verified Boot code is also hard-wired into the Chromebook laptops, meaning
+that any bugs must be found before laptop production starts.
+The importance of finding bugs makes Formal Verification more appealing.
 Additionally, Google has released both Verified Boot and Chrome OS as Open
 Source software, meaning verification can be run directly on industry code.
 
 \subsubsection{Contributions}
 
-The contributions that this thesis makes are the research into the open source firmware project Verified Boot created by Google; the expansion of the formal verification project into an open source software platform; and the evaluation of bounded model checking on verifying security properties of both hardware and software.
+The main contribution of this thesis is the application of Formal Verification
+tools to a large industrial project that spans the Hardware Software boundary.
+In order to perform Verification, specific abstractions are used, and these
+techniques can be extended to other large projects.
 
-% \subsection{Overview}
+This report also takes advantage of the Instruction Level Abstraction tool chain
+to show its effectiveness in a large scale system.
+In doing so, hardware models for common hardware such as a Trusted Computing
+Module, or a SHA hash are created.
+These models can also be re-used in other projects.
 
+Finally, this report ends with security recommendations for Verified Boot, which
+would harden the boot system based on the results of the Formal Verification.
+
+\subsection{Overview}
+
+This thesis moves from a description of the Verified Boot system to the Formal
+Verification techniques.
+Chapter 2 describes the Hardware used (and not used) by Verified Boot.
+Chapter 3 describes the Software implementation and organization.
+It will also describe any software deviations from Verified Boot that were
+necessary.
+Chapter 4 describes the Formal Verification techniques and abstractions used.
+Chapter 5 outlines the results of Formal Verification and outlines security
+recommendations for Verified Boot.
+Chapter 6 concludes the thesis by reiterating results and exploring
+possibilities for future work.
 
 \end{document}
