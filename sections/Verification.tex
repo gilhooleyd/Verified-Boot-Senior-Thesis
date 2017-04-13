@@ -213,20 +213,6 @@ value, and this is represented cleanly by a non-deterministic integer.
 CBMC exhaustively checks user assertions against all possible non-deterministic
 integer values.
 
-% \subsubsection{Known CBMC Limitations}
-% 
-% In order to get CBMC running, certain limitations had to be observed.
-% The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
-% This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
-% Data Dependant loops need to have their unrolling amount specified by the user.
-% However, incorrect unrolling can lead to problems with verification.
-% If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
-% % TODO: may want to remove this bit about Memcpy
-% Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
-% Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
-
-\subsection{Verifying Vboot with CBMC}
-
 \subsubsection{Abstractions}
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
@@ -288,39 +274,71 @@ Memory is never reclaimed.
 The idea for this abstraction originated from the work done in modeling memory
 by Franjo Ivancic\cite{eff-model-check}.
 
-\subsubsection{Function Definitions}
+% \subsubsection{Known CBMC Limitations}
+% 
+% In order to get CBMC running, certain limitations had to be observed.
+% The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
+% This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
+% Data Dependant loops need to have their unrolling amount specified by the user.
+% However, incorrect unrolling can lead to problems with verification.
+% If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
+% % TODO: may want to remove this bit about Memcpy
+% Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
+% Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{ro_full_functions.png}
-  \caption{The call graph of functions for Read Only Firmware}\label{fig:full_functions}
-\end{figure}
+\subsection{Verifying Vboot with CBMC}
 
-The full graph of functions can be seen in Figure~\ref{fig:full_functions}.
+In the sections below I run tests on each Vboot function using CBMC\@.
 The blue functions are fully software functions that are implemented in the Vboot Library.
 The yellow functions connect to the Flash firmware on a real platform, but have been abstracted to return either non-deterministic data for Read-Write information, or hardcoded data for Read-Only information.
-The red functions connect to the TPM on a real platform, but have been abstracted to return static variables are non-deterministic at the program's start.
-The purple functions connect to either an RSA accelerator or a software RSA library. Instead of going through the full RSA algorithm, the function has been abstracted to a simple non-deterministic return of true or false. 
-The green functions connect to either an SHA accelerator or a software SHA library.
-The SHA algorithm has been abstracted in the same manner as RSA to return simply true or false at random.
+The red functions connect to the TPM on a real platform, and are verified on the
+ILA TPM for this report.
+The purple functions connect to Vboot's software RSA library. 
+The green functions connect to the ILA SHA model. 
 
-For each of the next sections I will explain the verification process for individual functions. 
-This explanation will include the function abstractions that were necessary, and a description of each of the tests run. 
-There will be a table describing the results of each run of CBMC\@.
+For each function being verified, the connecting functions are replaced with
+abstractions.
+These abstractions all follow the idea of an ``over-abstracted'' function.
+The abstracted functions can be seen in my Code Repo or the code included in the
+Appendix.
+
+Finally, there will be a table describing the results of each CBMC run.
 CMBC uses an implementation of a SAT solver known as the MiniSat solver\cite{minisat}.
 This solver outputs unSAT if the assertions hold and SAT if they do not. 
 
+\subsubsection{Google's Assertions}
+
+Google has already created a Unit Test Framework for the Verified Boot process.
+This framework tests various properties of each function.
+Like most Unit Testing Frameworks, the functions are not tested in conjunction
+with the rest of the system.
+The framework given also stubs out any calls to Hardware, meaning that it 
+will not catch any errors across the Hardware Software boundary.
+Finally, the framework only checks for the input conditions provided. 
+Each function tested has roughly five to fifteen input conditions that are
+checked, which is not exhaustive.
+
+Luckily, the framework that Google uses also relies on assertions.
+This project was able to hook Google's Unit Test assertions into CBMC
+assertions, so Google specific properties can be verified for free along with 
+the larger security properties. 
+
 \subsubsection{LoadFirmware}
 
-The LoadFirmware function is where the main work is done in the Read-Only Vboot process.
-LoadFirmware is responsible for investigate Firmware images A and B, and seeing which image (if any) are correct and can be loaded.
-LoadFirmware drives the  Keyblock, Preamble, and Image verification.
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{loadfw.png}
+  \caption{The call graph of functions for LoadFirmware}\label{fig:loadfw}
+\end{figure}
+
+LoadFirmware is the highest level function that drives Vboot's Firmware Image
+verification process.
+LoadFirmware is responsible for verifying the Keyblock, Preamble, and Image.
 When LoadFirmware returns, it will have set the pass or fail statuses of both Firmware Images, and control will pass to a working Image.
 
 The CBMC test results for this function can be seen in Table~\ref{ldfw_results}. 
 Below is an itemized list of what each test is verifying.
-% TODO: Create better explanation of Google's assertions
-% This test shows that CMBC can be easily adapted into an existing framework and prove that Google specific assertions will not be thrown under any input.
+
 \begin{itemize}
  \item  Google unit tests -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
  \item  rollback test -- tests that under no input conditions will LoadFirmware choose a firmware image with a lower version number (see Property~\ref{eq:rollback}).
@@ -330,7 +348,7 @@ Below is an itemized list of what each test is verifying.
  \item  Array accesses -- check for all possibilities of array bounds errors.
 \end{itemize}
 
-\begin{table}[]
+\begin{table}[!htbp]
     \centering
     \caption{CBMC tests on the LoadFirmware function}\label{ldfw_results}
     \begin{tabular}{|l|l|l|l|l|l|l|l|}
@@ -349,6 +367,12 @@ We can see from these tests that CBMC is working successfully and in a reasonabl
 The Google unit test framework is can be put to use with the CBMC framework using minor modifications, and the formal verification can be done in a very reasonable time.
 
 \subsubsection{VbSelectFirmware}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.4\linewidth]{vb_sel_fw.png}
+  \caption{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
+\end{figure}
 
 The VbSelectFirmware function is the wrapper around LoadFirmware.
 It is responsible for loading flags in from secure storage and for accessing the TPM\@.
