@@ -1,11 +1,4 @@
-\documentclass[../report.tex]{subfiles}
-\def\code#1{\texttt{#1}}
-\begin{document}
-
-\onehalfspacing
-
-\newpage
-\section{Hardware Design}
+\chapter{Hardware Design}
 
 This section describes the Hardware design of Google's Verified Boot. 
 Because Verified Boot is the first software run on a Chromebook, it is
@@ -32,7 +25,7 @@ While this means that verification was being done on different hardware, the
 same techniques can easily be applied if the Chromebook hardware was ever
 released.
 
-\subsection{Flash Memory}\label{flash_mem}
+\section{Flash Memory}\label{flash_mem}
 
 The Flash Memory is an amount of extra non-volatile memory connected to every Chromebook. 
 The Flash Memory contains both a Read-Only section and a Read-Write section of memory.
@@ -56,7 +49,7 @@ The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
 The Flash Memory will be the one Hardware piece needed for security that will not be emulated or verified.
 
-\subsection{TPM}\label{sec:TPM}
+\section{TPM}\label{sec:TPM}
 
 The Trusted Platform Module or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security\cite{TPM}.
 A cryptographic processor is a processor that implements a variety of
@@ -91,7 +84,7 @@ On the right we can see the registers of the TPM that are accessed by the CPU.}
 \end{figure}
 
 
-\subsubsection{TPM Command Interface}\label{tpm_cmd_regs}
+\subsection{TPM Command Interface}\label{tpm_cmd_regs}
 
 The CPU communicates to the TPM by reading and writing specific memory addresses.
 These addresses allow the CPU to send multi-byte commands to the TPM and receive multi-byte responses, even though a single byte is read or written at a time.
@@ -121,7 +114,7 @@ Finally, the \code{Command\_Go} value is written to \code{Status} and \code{Stat
 Receiving a command follows the process above, except that \code{Data} is read instead of written to.
 Now that it is understood how commands are passed to and from the TPM, we can discuss the commands used by Google's Vboot.
 
-\subsubsection{Platform Configuration Registers}
+\subsection{Platform Configuration Registers}
 
 \begin{figure}
   \centering
@@ -158,7 +151,7 @@ Each power cycle the PCRs are reset to all 0's.
 % \subsubsection{Secure Storage}
 % TODO: Talk about the NV Storage Commands
 
-\subsection{SHA}
+\section{SHA}
 
 While the TPM implements SHA hashing, Vboot also takes advantage of a dedicated
 SHA hashing accelerator. 
@@ -184,7 +177,7 @@ Reading the \code{sha\_state} register returns the state that the module is in.
 This register is how a software program knows the module has completed its
 operation.
 
-\subsection{RSA}
+\section{RSA}
 
 RSA is a cryptographic platform that allows messages to be encrypted and
 decrypted through the use of public and private keys.
@@ -201,7 +194,7 @@ module.
 The possibility of adding a hardware RSA module will be discussed in the Future
 Work section.
 
-\subsection{QEMU Emulation}\label{qemu_em}
+\section{QEMU Emulation}\label{qemu_em}
 
 \begin{figure}
   \centering
@@ -234,7 +227,7 @@ located in RAM.
 % TODO: Get the SHA working
 % Using my own SHA implementation, close to the one used by coreboot
 
-\subsection{Instruction Level Abstraction (ILA)}
+\section{Instruction Level Abstraction (ILA)}
 
 I am using a tool to create an Instruction Level Abstraction (ILA) of Hardware.
 The ILA is used to create an abstraction of the TPM and the SHA module that can be
@@ -289,5 +282,3 @@ It produces an abstraction that is aware of how the Hardware reacts to Reads and
 Writes of specific Registers.
 This template can be connected back with the Firmware such that verification can
 happen across the Firmware-Hardware boundary.
-
-\end{document}

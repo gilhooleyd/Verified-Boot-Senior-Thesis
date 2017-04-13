@@ -1,10 +1,4 @@
-\documentclass[../report.tex]{subfiles}
-\def\code#1{\texttt{#1}}
-\begin{document}
-\onehalfspacing
-
-\pagebreak
-\section{Verification}\label{sec:Verif}
+\chapter{Verification}\label{sec:Verif}
 
 In this section I will discuss the security properties used by the Read-Only
 section of Verified Boot. 
@@ -19,7 +13,7 @@ performed with no modification to the source code.
 Properties in software are checked using CBMC, and Hardware modules are
 converted into C using the ILA toolchain.
 
-\subsection{Vboot Properties}
+\section{Vboot Properties}
 
 The properties that we will be checking can be separated into 3 categories: array accesses, program flow, and correctness.
 The array access property restricts the writeable addresses in memory to valid array boundaries. 
@@ -46,7 +40,7 @@ Table~\ref{ctl_syn} describes the CTL syntax.
     \end{tabular}
 \end{table}
 
-\subsubsection{Memory Access Locations}
+\subsection{Memory Access Locations}
 
 Memory accesses in C are very important because the language allows for arbitrary addresses to be accessed. 
 Addressing arrays before their starting address or after their final address is known as a buffer overrun and it is one of the most common security vulnerabilities. 
@@ -79,7 +73,7 @@ The equation states that the offset and size of the struct do not go past the ed
 Together these properties state that array accesses must be in bounds and that structure dereferencing must be in bounds of the image that is being referenced.
 As these are the two memory referencing techniques that have the potential for overrun, these properties protect the system against overrun attacks.
 
-\subsubsection{Program Flow properties}
+\subsection{Program Flow properties}
 
 There needs to be an ordered constraint on the flow of the program. 
 If the program flow is described formally then it will be easy to check that all stages of secure boot were called and in the correct order.
@@ -125,7 +119,7 @@ In Figure~\ref{fig:verif_flow} we can see that state $s_0$ can transition to eit
 All together these equations fully describe the program flow graph in Figure~\ref{fig:verif_flow}. 
 If these hold then steps will not be skipped in the verification process and we can be assured that verification of the image will be attempted in order.
 
-\subsubsection{Correctness properties}
+\subsection{Correctness properties}
 
 Correctness properties refer to the code itself and help to determine if it has been written correctly.
 For Verified Boot, correctness properties are focusing on the correct attestation of the image and attempting to guarantee that an incorrect image cannot be marked as correct and loaded for execution.
@@ -173,7 +167,7 @@ Img.version is the RW firmware version and prevVersion is the last seen version 
 These properties will be proved contrapositively, meaning that when verified boot passes we will check that the antecedent is also false.
 
 
-\subsection{CBMC}
+\section{CBMC}
 
 CBMC is a Bounded Model Checking program for the C language that is released by
 Carnegie Mellon. 
@@ -213,7 +207,7 @@ value, and this is represented cleanly by a non-deterministic integer.
 CBMC exhaustively checks user assertions against all possible non-deterministic
 integer values.
 
-\subsubsection{Abstractions}
+\subsection{Abstractions}
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
 Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 8GB of RAM on my local machine and then be cancelled.
@@ -286,7 +280,7 @@ by Franjo Ivancic\cite{eff-model-check}.
 % Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
 % Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
 
-\subsection{Verifying Vboot with CBMC}
+\section{Verifying Vboot with CBMC}
 
 In the sections below I run tests on each Vboot function using CBMC\@.
 The blue functions are fully software functions that are implemented in the Vboot Library.
@@ -306,7 +300,7 @@ Finally, there will be a table describing the results of each CBMC run.
 CMBC uses an implementation of a SAT solver known as the MiniSat solver\cite{minisat}.
 This solver outputs unSAT if the assertions hold and SAT if they do not. 
 
-\subsubsection{Google's Assertions}
+\subsection{Google's Assertions}
 
 Google has already created a Unit Test Framework for the Verified Boot process.
 This framework tests various properties of each function.
@@ -323,7 +317,7 @@ This project was able to hook Google's Unit Test assertions into CBMC
 assertions, so Google specific properties can be verified for free along with 
 the larger security properties. 
 
-\subsubsection{LoadFirmware}
+\subsection{LoadFirmware}
 
 \begin{figure}[!htbp]
   \centering
@@ -366,7 +360,7 @@ Below is an itemized list of what each test is verifying.
 We can see from these tests that CBMC is working successfully and in a reasonable time.
 The Google unit test framework is can be put to use with the CBMC framework using minor modifications, and the formal verification can be done in a very reasonable time.
 
-\subsubsection{VbSelectFirmware}
+\subsection{VbSelectFirmware}
 
 \begin{figure}[!htbp]
   \centering
@@ -397,7 +391,7 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
     \end{tabular}
 \end{table}
 
-\subsection{TPM Properties}
+\section{TPM Properties}
 
 \begin{figure}[!htbp]
   \centering
@@ -422,9 +416,9 @@ I will also mention how the TPM handles concurrency, and why this does not allow
 
 % Rollback Attack
 
-\subsubsection{ILA for Hardware}   
+\subsection{ILA for Hardware}   
 
-\subsubsection{TPM Properties}   
+\subsection{TPM Properties}   
 
 %TODO get graph of Vboots TPM functions
 Some properties are possible to prove using Hardware and Firmware separately.
@@ -441,7 +435,7 @@ This is important for liveness, because if the Firmware is stuck polling a regis
 
 %TODO: Get TPM CBMC table up and running here
 
-\subsubsection{Verifying TPM with ILA}   
+\subsection{Verifying TPM with ILA}   
 
 In order to check the TPM, the Vboot firmware had to use the TPM registers and
 command flow  described in Section~\ref{tpm_cmd_regs}.
@@ -458,7 +452,3 @@ The file \code{TPM\_template.py} is the ILA template.
 The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
 I used for verification.
 The simulator and the template are a formal description of the TPM's registers and command behavior that I outlined previous in Section~\ref{tpm_cmd_regs}. 
-
-\clearpage
-
-\end{document}

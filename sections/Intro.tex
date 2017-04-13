@@ -1,8 +1,4 @@
-\documentclass[../report.tex]{subfiles}
-\begin{document}
-\onehalfspacing
-
-\section{Introduction}
+\chapter{Introduction}
 
 Computing systems are becoming larger and more complicated, making security
 issues harder to find.
@@ -46,7 +42,7 @@ However, today's security programs are relying both on software programs and
 hardware modules working together, and there are no industry standards to
 produce verification across this new boundary.
 
-\subsection{The Hardware-Software Boundary}
+\section{The Hardware-Software Boundary}
 
 Originally a computer was a general purpose CPU, and software would
 describe how the CPU should perform various tasks.
@@ -73,7 +69,7 @@ It is no longer enough to verify software and hardware separately, as the
 interactions between the two are an important part in modern security
 algorithms.
 
-\subsection{Existing Verification Techniques}
+\section{Existing Verification Techniques}
 
 Formal Verification is defined as the application of mathematical methods to
 prove or disprove the specification of a system~\cite{greenstreet}.
@@ -110,7 +106,7 @@ user assertions.
 More information about Verification tools can be found in
 Section~\ref{sec:Verif}. 
 
-\subsection{Problem Statement}
+\section{Problem Statement}
 
 The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
 As this pattern increases the job of verifying functionality becomes more difficult.
@@ -168,7 +164,7 @@ The importance of finding bugs makes Formal Verification more appealing.
 Additionally, Google has released both Verified Boot and Chrome OS as Open
 Source software, meaning verification can be run directly on industry code.
 
-\subsubsection{Contributions}
+\subsection{Contributions}
 
 The main contribution of this thesis is the application of Formal Verification
 tools to a large industrial project that spans the Hardware Software boundary.
@@ -184,7 +180,7 @@ These models can also be re-used in other projects.
 Finally, this report ends with security recommendations for Verified Boot, which
 would harden the boot system based on the results of the Formal Verification.
 
-\subsection{Overview}
+\section{Overview}
 
 This thesis moves from a description of the Verified Boot system to the Formal
 Verification techniques.
@@ -197,5 +193,3 @@ Chapter 5 outlines the results of Formal Verification and outlines security
 recommendations for Verified Boot.
 Chapter 6 concludes the thesis by reiterating results and exploring
 possibilities for future work.
-
-\end{document}

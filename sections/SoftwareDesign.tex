@@ -1,10 +1,4 @@
-\documentclass[../report.tex]{subfiles}
- 
-\begin{document}
-\onehalfspacing
-
-\newpage
-\section{Software Design}
+\chapter{Software Design}
 
 This section will discuss the Software and Firmware implementation of Verified
 Boot. 
@@ -16,7 +10,7 @@ In this section I will discuss the security promises made by the system as well
 as the attack vectors that are not considered.
 I will also discuss relevant data structures and program flow.
 
-\subsection{Security Promises}
+\section{Security Promises}
 
 The main purpose of Chrome OS's verified boot is to provide relative security to the end user without sacrificing usability or functionality. 
 In its mission statement, verified boot is designed against an ``opportunistic hacker''~\cite{vboot-design-doc}.
@@ -39,7 +33,7 @@ runtime would remain until the system was powered down.
 In certain situations could provide plenty of time for an attack to steal valuable data.
 However, such an attack is outside the scope of this paper.
 
-\subsection{Verified Boot Flow}
+\section{Verified Boot Flow}
 
 In order to divide the code modularly and have Verified Boot be extensible for current and future platforms, Google has split the process into three main sections as seen in Figure~\ref{fig:vboot_stages_overview}.
 This also allows Google to make the Read-Only stage as small as possible, which is good because bugs in this stage cannot be fixed.
@@ -106,7 +100,7 @@ system jumps to the Image and begins to execute the code for the main Firmware
 and Operating System.
 
 
-\subsection{Boot Modes}\label{sec:boot-modes}
+\section{Boot Modes}\label{sec:boot-modes}
 
 Vboot has three major boot states that influence the program's behavior.
 The first state is the Secure state which goes through the full process of Verified Boot normally.
@@ -133,7 +127,7 @@ These responsibilities are also seen in the figure.
   \\}\label{fig:mode_fsm}
 \end{figure}
 
-\subsubsection{Developer Mode}
+\subsection{Developer Mode}
 
 Developer mode poses interesting security questions to Verified boot because it essentially disables the security guarantees and allows the system to move into an insecure state~\cite{developer-mode}. 
 There are various security requirements around the Developer state transition.
@@ -152,7 +146,7 @@ The assumptions that Google places on secure storage require that it can only be
 The platform will not be able to recognize if secure storage is in an insecure or malicious state and so wiping it is the easiest way to ensure that the platform has full control.
 On the transition from Developer to Safe Mode, the system has to go through Recovery Mode.
 
-\subsubsection{Recovery Mode}
+\subsection{Recovery Mode}
 
 Recovery Mode is responsible for getting the system back to a secure state.
 Recovery Mode will be activated automatically when an error is recognized in Vboot.
@@ -165,14 +159,14 @@ If Recovery completes successfully, the system is in a secure state and Vboot ca
 From a user perspective, Recovery is an easy way to wipe the device and restore it to Factory Settings.
 Recovery is also the only way to roll the device back to an early image, and this rollback is sometimes necessary if there are known problems with a newly uploaded image.
 
-\subsection{Data Structures}\label{sec:data-structures}
+\section{Data Structures}\label{sec:data-structures}
 
 To start understanding the Vboot verification process, it is necessary to talk about the data structures that are used throughout. 
 These data structures are populated by the Firmware Image that is being
 verified. 
 Through this section I will start at the highest hierarchical level of data structure then explain the structures that are contained within.
 
-\subsubsection{Firmware/Kernel Image}
+\subsection{Firmware/Kernel Image}
 
 \begin{figure}
     \centering
@@ -189,7 +183,7 @@ The preamble contains the hash of the image's body.
 The image's body contains the code that is going to be run next and it is checked against the hash stored in the preamble.
 The preamble also contains the RSA key used to verify the key block of the Kernel image.
 
-\subsubsection{Key Blocks}\label{sec:key_block}
+\subsection{Key Blocks}\label{sec:key_block}
 
 \begin{figure}
 \begin{subfigure}{.5\textwidth}
@@ -219,7 +213,7 @@ Within the keyblock there exists data structures for a public key and a signatur
 Google has added the ability to change their encryption strength.
 They have added support for RSA 1024, 2048, 4096, 8192 and for SHA 1, 256, 512, for a total of 12 different possible algorithm combinations.
 
-\subsubsection{Google Binary Block}
+\subsection{Google Binary Block}
 
 % info found in gbb_header.h
 The Google Binary Block (GBB) is a part of Vboot's Root of Trust.
@@ -227,7 +221,7 @@ It is a data structure stored in Read-Only memory that is initialized and config
 It contains the Root and Recovery RSA keys, a host of flags that affect boot operation, and the bitmaps used for various boot screens.
 
 
-\subsection{Code Organization}
+\section{Code Organization}
 
 Like most modern operating systems, Chrome OS is written in C.
 Like Linux, Chrome OS is maintained using Git for version control. 
@@ -254,7 +248,7 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
   verification}\label{fig:qemu_repos}
 \end{figure}
 
-\subsubsection{Coreboot}\label{coreboot}
+\subsection{Coreboot}\label{coreboot}
 
 Coreboot is a fully Open-Sourced alternative to traditional BIOS implementations.~\cite{coreboot}
 It is lightweight and is configured to implement the full standard of the Unified Extensible Firmware Interface (UEFI).
@@ -267,7 +261,7 @@ This payload is responsible for initializing the more specialized drivers, and t
 The payload that Coreboot calls to further initialize the Chromebook is Depthcharge.
 % Init done in src/mainboard/google/{link}/romstage.c
 
-\subsubsection{Vboot\_reference}
+\subsection{Vboot\_reference}
 
 The vboot\_reference repo contains all of the control and algorithms for the vboot process~\cite{vboot-codebase}.
 The repo is designed such that it does not rely on any knowledge about the platform.
@@ -279,7 +273,7 @@ More information about building the project can be found in the appendix, but
 this feature allowed the Vboot functions to be placed into the QEMU environment
 easily, and it can be adapted for many different types of hardware.
 
-\subsubsection{Software TPM}
+\subsection{Software TPM}
 
 This project uses a software-emulated TPM instead of a physical chip. 
 This emulated TPM implements all of the TPM's functionality as defined by the
@@ -298,7 +292,7 @@ Fifo\cite{SWTPM}, and the TPM Register Interface\cite{TPMQEMU}.
 More information about installing the Software TPM libraries can be found in the
 appendix.
 
-\subsubsection{CBMC-Vboot}
+\subsection{CBMC-Vboot}
 
 The CBMC-Vboot is my personal repository for code\cite{my-repo}.
 The layout of this repository is discussed in the Appendix.
@@ -306,5 +300,3 @@ We can see in Figure~\ref{fig:qemu_repos} that it is used as a wrapper to tie
 Vboot together with QEMU and the SWTPM libraries.
 It also holds python scripts which run the CBMC tests that I will describe in
 Section~\ref{sec:Verif}.
-
-\end{document}

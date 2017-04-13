@@ -1,0 +1,364 @@
+% ****************************************************************************************** % Dissertation template and document class for Princeton University
+% Author  : Jeffrey Scott Dwoskin <jdwoskin@princeton.edu>
+% Adapted from: http://www.math.princeton.edu/graduate/tex/puthesis.html
+% ****************************************************************************************** %
+
+
+%%% For print copies
+%% set 'singlespace' option to set entire thesis to single space, and define "\printmode" to remove all hyperlinks for printed copies of the thesis. Delete all output files before changing this mode -- it will turn hyperref package on and off
+%\documentclass[12pt,lot, lof, singlespace]{puthesis}
+%\newcommand{\printmode}{}
+
+%%% For the electronic copy, use doublespacing, define "\proquestmode" to use outlined links, instead of colored links. 
+\documentclass[12pt,lot, lof]{puthesis}
+\newcommand{\proquestmode}{}
+% I prefer proquestmode to be off for electronic copies for normal use, since the colored links are less distracting. However when printed in black and white, the colored links are difficult to read. 
+
+%%% For early drafts without some of the frontmatter
+% Also see the "ifodd" command below to disable more frontmatter
+%\documentclass[12pt]{puthesis}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\
+%%%% Author & title page info
+
+\title{Dissertation Template for Princeton University}
+
+\submitted{June 2010}  % degree conferral date (January, April, June, September, or November)
+\copyrightyear{2010}  % year in which the copyright is secured by publication of the dissertation.
+\author{First Middle Last}
+\adviser{Professor Smith}  %replace with the full name of your adviser
+%\departmentprefix{Program in}  % defaults to "Department of", but programs need to change this.
+\department{Electrical Engineering}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\
+%%%% Tweak float placements
+% From: http://mintaka.sdsu.edu/GF/bibliog/latex/floats.html "Controlling LaTeX Floats"
+% and based on: http://www.tex.ac.uk/cgi-bin/texfaq2html?label=floats
+% LaTeX defaults listed at: http://people.cs.uu.nl/piet/floats/node1.html
+
+% Alter some LaTeX defaults for better treatment of figures:
+    % See p.105 of "TeX Unbound" for suggested values.
+    % See pp. 199-200 of Lamport's "LaTeX" book for details.
+    %   General parameters, for ALL pages:
+    \renewcommand{\topfraction}{0.85}	% max fraction of floats at top
+    \renewcommand{\bottomfraction}{0.6}	% max fraction of floats at bottom
+    %   Parameters for TEXT pages (not float pages):
+    \setcounter{topnumber}{2}
+    \setcounter{bottomnumber}{2}
+    \setcounter{totalnumber}{4}     % 2 may work better
+    \setcounter{dbltopnumber}{2}    % for 2-column pages
+    \renewcommand{\dbltopfraction}{0.66}	% fit big float above 2-col. text
+    \renewcommand{\textfraction}{0.15}	% allow minimal text w. figs
+    %   Parameters for FLOAT pages (not text pages):
+    \renewcommand{\floatpagefraction}{0.66}	% require fuller float pages
+	% N.B.: floatpagefraction MUST be less than topfraction !!
+    \renewcommand{\dblfloatpagefraction}{0.66}	% require fuller float pages
+
+% The documentclass already sets parameters to make a high penalty for widows and orphans. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\
+%%%% Use packages
+
+%\usepackage{amsfonts}
+
+%%% For figures
+\usepackage{graphicx}
+% \usepackage{subfig,rotate}
+\usepackage{subcaption}
+\usepackage{amsmath}
+
+% Tell where to find images
+\graphicspath{{images/}}
+
+%%% for comments
+\usepackage{verbatim}
+
+%%% For tables
+\usepackage{multirow}
+% Longtable lets you have tables that span multiple pages.
+\usepackage{longtable}
+
+% Booktabs produces far nicer tables than the standard LaTeX tables.
+%   see: http://en.wikibooks.org/wiki/LaTeX/Tables
+\usepackage{booktabs}
+
+%set parameters for longtable:
+% default caption width is 4in for longtable, but wider for normal tables
+\setlength{\LTcapwidth}{\textwidth}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Printed vs. online formatting
+\ifdefined\printmode
+
+% Printed copy
+% url package understands urls (with proper line-breaks) without hyperlinking them
+\usepackage{url}
+
+
+\else
+
+\ifdefined\proquestmode
+%ProQuest copy -- http://www.princeton.edu/~mudd/thesis/Submissionguide.pdf
+
+% ProQuest requires a double spaced version (set previously). They will take an electronic copy, so we want links in the pdf, but also copies may be printed or made into microfilm in black and white, so we want outlined links instead of colored links.
+\usepackage{hyperref}
+\hypersetup{bookmarksnumbered}
+
+% copy the already-set title and author to use in the pdf properties
+\makeatletter
+\hypersetup{pdftitle=\@title,pdfauthor=\@author}
+\makeatother
+
+\else
+% Online copy
+
+% adds internal linked references, pdf bookmarks, etc
+
+% turn all references and citations into hyperlinks:
+%  -- not for printed copies
+% -- automatically includes url package
+% options:
+%   colorlinks makes links by coloring the text instead of putting a rectangle around the text.
+\usepackage{hyperref}
+\hypersetup{colorlinks,bookmarksnumbered}
+
+% copy the already-set title and author to use in the pdf properties
+\makeatletter
+\hypersetup{pdftitle=\@title,pdfauthor=\@author}
+\makeatother
+
+% make the page number rather than the text be the link for ToC entries
+%\hypersetup{linktocpage}
+\fi % proquest or online formatting
+\fi % printed or online formatting
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\
+%%%% Define commands
+
+% Define any custom commands that you want to use.
+% For example, highlight notes for future edits to the thesis
+%\newcommand{\todo}[1]{\textbf{\emph{TODO:}#1}}
+
+
+% create an environment that will indent text
+% see: http://latex.computersci.org/Reference/ListEnvironments
+% 	\raggedright makes them left aligned instead of justified
+\newenvironment{indenttext}{
+    \begin{list}{}{ \itemsep 0in \itemindent 0in
+    \labelsep 0in \labelwidth 0in
+    \listparindent 0in
+    \topsep 0in \partopsep 0in \parskip 0in \parsep 0in
+    \leftmargin 1em \rightmargin 0in
+    \raggedright
+    }
+    \item
+  }
+  {\end{list}}
+
+% another environment that's an indented list, with no spaces between items -- if we want multiple items/lines. Useful in tables. Use \item inside the environment.
+% 	\raggedright makes them left aligned instead of justified
+\newenvironment{indentlist}{
+    \begin{list}{}{ \itemsep 0in \itemindent 0in
+    \labelsep 0in \labelwidth 0in
+    \listparindent 0in
+    \topsep 0in \partopsep 0in \parskip 0in \parsep 0in
+    \leftmargin 1em \rightmargin 0in
+    \raggedright
+    }
+
+  }
+  {\end{list}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\
+%%%% Front-matter
+
+% For early drafts, you may want to disable some of the frontmatter. Simply change this to "\ifodd 1" to do so.
+\ifodd 0
+% front-matter disabled while writing chapters
+\renewcommand{\maketitlepage}{}
+\renewcommand*{\makecopyrightpage}{}
+\renewcommand*{\makeabstract}{}
+
+% you can just skip the \acknowledgements and \dedication commands to leave out these sections.
+
+\else
+
+
+\abstract{
+% Abstract can be any length, but should be max 350 words for a Dissertation for ProQuest's print indicies (150 words for a Master's Thesis) or it will be truncated for those uses.
+\input{sections/abstract}
+}
+
+\acknowledgements{
+%I would like to thank...
+\input{sections/acknowledgements}
+}
+
+\fi  % disable frontmatter
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Notes:
+
+% Footnotes should be placed after punctuation.\footnote{place here.}
+% Generally, place citations before the period~\cite{anotherauthor}.
+% The proper usage for i.e., and e.g., include commas ``(e.g., option A, option B)''
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Import chapters
+
+\begin{document}
+
+\makefrontmatter
+
+\def\code#1{\texttt{#1}}
+% If you've disabled frontmatter, you can insert the toc manually
+%\tableofcontents\clearpage
+
+% \include lets us split up the document (and each include starts a new page):
+\onehalfspacing
+\include{sections/Intro}
+\include{sections/HardwareDesign}
+\include{sections/SoftwareDesign}
+\include{sections/Verification}
+\include{sections/Conclusion}
+
+
+% Make the bibliography single spaced
+\singlespacing
+\bibliographystyle{plain}
+
+% add the Bibliography to the Table of Contents
+\cleardoublepage
+\ifdefined\phantomsection
+  \phantomsection  % makes hyperref recognize this section properly for pdf link
+\else
+\fi
+\addcontentsline{toc}{chapter}{Bibliography}
+
+% include your .bib file
+% \bibliography{thesis}
+\begin{flushleft}
+% Set font size
+\begin{footnotesize}
+% Actual Bibliography
+\begin{thebibliography}{\kern\bibindent}
+
+    \bibitem{greenstreet}
+        Christoph Kern, Mark R. Greenstreet, Formal verification in hardware design: a survey, ACM Transactions on Design Automation of Electronic Systems (TODAES), v.4 n.2, p.123-193, April 1999 
+    \bibitem{validating-sat}
+        L. Zhang and S. Malik, “Validating sat solvers using an independent resolution-based checker: Practical implementations and other applications,” in Proceedings of the conference on Design, Automation and Test in Europe-Volume 1, p. 10880, IEEE Computer Society, 2003.
+
+    \bibitem{z3-smt-solver}
+        de Moura L., Bjørner N. (2008) Z3: An Efficient SMT Solver. In: Ramakrishnan C.R., Rehof J. (eds) Tools and Algorithms for the Construction and Analysis of Systems. TACAS 2008. Lecture Notes in Computer Science, vol 4963. Springer, Berlin, Heidelberg
+
+    \bibitem{hardware-accel}
+        R. Weber, A. Gothandaraman, R. J. Hinde and G. D. Peterson, "Comparing Hardware Accelerators in Scientific Applications: A Case Study," in IEEE Transactions on Parallel and Distributed Systems, vol. 22, no. 1, pp. 58-68, Jan. 2011.
+
+    \bibitem{ila}
+        S. Malik and S. Subramanyan, "Specification and Modeling for Systems-on-Chip Security Verification"
+        % TODO: Fix both of these
+    \bibitem{ila-template}
+        P. Subramanyan,  Y. Vizel, et-al "Template-based Synthesis of
+        Instruction Level Abstractions for SoC Verification"
+
+    \bibitem{elane}
+E. Chou and S. Malik, "A Secure Bootloader for Demonstrating Formal Verification of Hardware-Firmware Interactions on SoCs"
+
+    \bibitem{security-basics}
+        Lee, Ruby B. "Security basics for computer architects." Synthesis Lectures on Computer Architecture 8.4 (2013): 1-111.
+
+    \bibitem{secure-bootloader}
+        Cammack, William E., and Jason Douglas Kridner. "Secure bootloader for securing digital devices." U.S. Patent No. 7,237,121. 26 Jun. 2007.
+    \bibitem{fw-summit}
+        ``Chrome OS Firmware Overview'' Google Inc. Accessed November 1, 2016. \url{https://docs.google.com/presentation/d/1h-nsDGlQmYI21dr95nYgLmyCYDgBIpJWSt9b7AqTZaw/pub?start=false&loop=false&delayms=3000&slide=id.g2ba203e62_048}        
+
+    \bibitem{TPM}
+        ``Trusted Platform Module'' Trusted Computing Group.\url{https://trustedcomputinggroup.org//work-groups/trusted-platform-module/}
+    \bibitem{TCG}
+        Trusted Computing Group. \url{http://www.trustedcomputinggroup.org.}
+    \bibitem{git}
+        ``Git. Fast version Control'' Accessed December 10, 2016. \url{https://git-scm.com/}
+
+    \bibitem{vboot-design-doc}
+    ``Firmware Boot and Recovery'' Google Inc. Accessed November 1, 2016. \url{http://www.chromium.org/chromium-os/chromiumos-design-docs/firmware-boot-and-recovery}
+
+\bibitem{repo}
+    ``Developing with Git and Repo'' Google Inc. Accessed January 2, 2017. \url{http://source.android.com/source/developing.html}
+
+\bibitem{coreboot}
+    ``Coreboot'' Accessed November 3, 2016. \url{https://www.coreboot.org/}
+
+\bibitem{my-repo}
+    ``Coreboot'' Accessed March 6, 2017. \url{https://github.com/gilhooleyd/CBMC-Vboot}
+
+\bibitem{coreboot-payload}
+    ``Acquiring, Building, and Configuring the Payload Compatible with the Coreboot Reference Bootloader'' Intel. December 2015 \url{http://www.intel.com/content/dam/www/public/us/en/documents/white-papers/coreboot-reference-bootloader-white-paper.pdf}
+
+\bibitem{depthcharge-slides}
+    ``Depthcharge: The ChromeOS bootloader'' Google Inc. Accessed November 3, 2016.
+    \url{https://a77db9aa-a-7b23c8ea-s-sites.googlegroups.com/a/chromium.org/dev/chromium-os/2014-firmware-summit/ChromeOS\%20firmware\%20summit\%20-\%20Depthcharge.pdf?attachauth=ANoY7crD3ii0STwDVZHwBB0OCdcPXkiczTeo9TaIDJ4pntDcLPqwiA_zHy98OVs_SgenmBV5c-1HcuyT50zByhY0Y5qngp9ju8ziU74J6OMh3xPpPsqpBVLlDsCu57BSzIKvB4XZ9MLlDAZXMO8NaIRRwTIsaj1gtreX072tvLDYAIh6V8GpR542uMiV4YpOAbR0oJ64X4g60lUFoIHGTEMbhPRe-CQZJT6nlJyjsH_iPRrntmN_OtJtJRI7KmDd5zMeopwIbupHKCaUW24wQF_4KudBJ7oLp6s01cjknwyW-wY9op-M8Wg\%3D&attredirects=1}
+\bibitem{depthcharge-codebase}
+    ``Depthcharge Codebase'' Google Inc. \url{https://chromium.googlesource.com/chromiumos/platform/depthcharge/}
+
+\bibitem{vboot-codebase}
+    ``Verified Boot CodeBase'' Google Inc. \url{https://chromium.googlesource.com/chromiumos/platform/vboot_reference/}
+
+\bibitem{developer-mode}
+    ``Chrome OS Developer Mode'' Google Inc. \url{http://www.chromium.org/chromium-os/chromiumos-design-docs/developer-mode}
+
+\bibitem{vboot-data-structures}
+    ``Verified Boot Data Structures'' Google Inc. \url{http://www.chromium.org/chromium-os/chromiumos-design-docs/verified-boot-data-structures}
+
+\bibitem{minisat}
+    Sorensson, Niklas, and Niklas Een. "Minisat v1. 13-a sat solver with conflict-clause minimization." SAT 2005 (2005): 53.
+\bibitem{my-repo}
+    D. Gilhooley. \url{https://bitbucket.org/david\_gilhooley/personal-vboot}, 2017
+\bibitem{tpm-book}
+    Challener, David. \textit{A Practical Guide To Trusted Computing}. 1st ed. Upper Saddle River, NJ: IBM Press/Pearson plc, 2008. Print.
+\bibitem{tpm-slides}
+    Ng, Raymond. \textit{TPM Fundamentals}. Infineon, APTISS. 2008. Slides.
+\bibitem{qemu-site}
+    ``QEMU: the Fast processor emulator'' \url{http://www.qemu-project.org/}
+\bibitem{TPMLibs}
+    Stefan, Berger. LibTpms. \url{https://github.com/stefanberger/libtpms}
+\bibitem{SWTPM}
+    Stefan, Berger. SwTpm. \url{https://github.com/stefanberger/swtpm}
+\bibitem{TPMQEMU}
+    Stefan, Berger. Qemu-Tpm. \url{https://github.com/stefanberger/qemu-tpm}
+\bibitem{multiboot}
+    ``Multiboot Specification'' \url{https://www.gnu.org/software/grub/manual/multiboot/multiboot.html}
+\bibitem{trustfound}
+    Bai, Guangdong, et al. ``Trustfound: Towards a formal foundation for model checking trusted computing platforms.'' \textit{International Symposium on Formal Methods.} Springer International Publishing, 2014.
+\bibitem{load-protocol}
+    Krstic, Sava, et al. ``Security of SoC firmware load protocols.''
+    \textit{Hardware-Oriented Security and Trust (HOST), 2014 IEEE International Symposium on.} IEEE, 2014.
+\bibitem{eff-model-check}
+    Ivancic, Franjo, et al. ``Efficient SAT-based bounded model checking for software verification.'' \textit{Theoretical Computer Science 404.3} (2008): 256-274.
+\bibitem{tpm-toctou}
+    Bratus, Sergey, et al. ``TOCTOU, traps, and trusted computing.'' \textit{International Conference on Trusted Computing.} Springer Berlin Heidelberg, 2008.
+\bibitem{bios-guidelines}
+    Cooper, D., Polk, W., Regenscheid, A., \& Souppaya, M. (2011). Bios protection guidelines. \textit{NIST Special Publication, 800,} 147.
+\bibitem{atmel-tpm}
+     Atmel. AT97SC3201 — The Atmel Trusted Platform Modul. \url{http://www.atmel.com/images/doc5128.pdf}
+\bibitem{broadcom-tpm}
+Broadcom. BCM5752 -- Single-chip device for desktop lan-on-motherboard applications. \url{http://www.recomb-omsk.ru/published/SC/html/scripts/doc/BCM5752-PB02-R.pdf}
+\bibitem{infineon-tpm}
+    Infineon Technologies AG. Product Brief — TPM 1.2 Hardware. \url{http://www.infineon.com/tpm}, May 2005
+\bibitem{tcg-inside}
+    Sadeghi, Ahmad-Reza, et al. ``TCG inside?: a note on TPM specification compliance.'' \textit{Proceedings of the first ACM workshop on Scalable trusted computing.} ACM, 2006.
+\bibitem{TPM-state}
+    Delaune, Stephanie, et al. ``A formal analysis of authentication in the TPM.'' International Workshop on Formal Aspects in Security and Trust. Springer Berlin Heidelberg, 2010.
+\bibitem{TPM-spec-verif}
+        Gurgens, Sigrid, et al. ``Security evaluation of scenarios based on the TCG’s TPM specification.'' European Symposium on Research in Computer Security. Springer Berlin Heidelberg, 2007.
+\end{thebibliography}
+\end{footnotesize}
+\end{flushleft}
+
+\end{document}
+
