@@ -53,7 +53,7 @@ This verification contains more interesting control flow, and process is essenti
   \centering
   \includegraphics[width=1.0\linewidth]{vboot_stages_AB_recovery.png}
 \end{subfigure}
-\caption{The left image shows the stages of Vboot Firmware. The right image
+\caption[Verified Boot Stages]{The left image shows the stages of Vboot Firmware. The right image
 shows the different boot paths, and data locations. Both make the distinction
 between Read-Only and Read-Write memory.}
 \label{fig:vboot_stages_overview}
@@ -69,7 +69,7 @@ These transitions will be described in more detail in Section~\ref{sec:boot-mode
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{verification_flow.png}
-  \caption{The logical flow for verifying the firmware image. Notice
+  \caption[Verified Boot Program Flow]{The logical flow for verifying the firmware image. Notice
   the different path for Developer mode, and the possibilities for
   failure.}\label{fig:verif_flow}
 \end{figure}
@@ -118,7 +118,7 @@ These responsibilities are also seen in the figure.
 \begin{figure}
   \centering
   \includegraphics[width=0.4\linewidth]{mode_fsm.png}
-  \caption{The FSM for the boot modes. \\
+  \caption[Vboot Boot Mode FSM]{The FSM for the boot modes. \\
   1. The TPM's nonvolatile storage and keys are wiped. The user's data
   is erased. \\
   2. The laptop is booted into Recovery, Vboot installs a Chrome USB.
@@ -171,7 +171,7 @@ Through this section I will start at the highest hierarchical level of data stru
 \begin{figure}
     \centering
     \includegraphics[width=0.6\linewidth]{fw_image.png}
-    \caption{Layout of the Firmware Images~\cite{vboot-data-structures}}
+    \caption[Firmware Image Data Layout]{Layout of the Firmware Images~\cite{vboot-data-structures}}
     \label{fig:vboot_images}
 \end{figure}
 
@@ -198,7 +198,7 @@ The preamble also contains the RSA key used to verify the key block of the Kerne
   \centering
   \includegraphics[width=1.0\linewidth]{vbsignature.png}
 \end{subfigure}
-\caption{The Keyblock data structure and Metadata for Keys and Signatures}
+\caption[Keyblock Data Structure]{The Keyblock data structure and Metadata for Keys and Signatures}
 \label{fig:vboot_keyblock}
 \end{figure}
 
@@ -238,12 +238,13 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{code_repos}
-  \caption{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}\label{fig:code_repos}
+  \caption[Vboot Repository layout]{ChromeOS's boot flow goes through Coreboot, Depthcharge, and the Vboot Library twice for Firmware and Kernel verification}\label{fig:code_repos}
 \end{figure}
+
 \begin{figure}
   \centering
   \includegraphics[width=0.45\linewidth]{qemu_repos}
-  \caption{This report's boot flow uses QEMU's default bootloader Firmware, then
+  \caption[This report's Repository Layout]{This report's boot flow uses QEMU's default bootloader Firmware, then
   a created C wrapper for the TPM and Debugging Output, and Vboot for the
   verification}\label{fig:qemu_repos}
 \end{figure}

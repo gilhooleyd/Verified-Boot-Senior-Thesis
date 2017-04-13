@@ -322,7 +322,7 @@ the larger security properties.
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.6\linewidth]{loadfw.png}
-  \caption{The call graph of functions for LoadFirmware}\label{fig:loadfw}
+  \caption[LoadFirmware Call Graph]{The call graph of functions for LoadFirmware}\label{fig:loadfw}
 \end{figure}
 
 LoadFirmware is the highest level function that drives Vboot's Firmware Image
@@ -365,7 +365,7 @@ The Google unit test framework is can be put to use with the CBMC framework usin
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.4\linewidth]{vb_sel_fw.png}
-  \caption{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
+  \caption[VbSelectFirmware Call Graph]{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
 \end{figure}
 
 The VbSelectFirmware function is the wrapper around LoadFirmware.
@@ -396,7 +396,7 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.6\linewidth]{tpm_call_graph}
-  \caption{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
+  \caption[TPM Call Graph]{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
 \end{figure}
 
 The Read-Only Firmware is responsible for setting up the TPM and protecting its

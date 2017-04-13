@@ -1,10 +1,9 @@
 # Makefile for Junior Spring IW Report
 
-FILE = report
+FILE = thesis 
 SECTIONS = sections
 
 all:
-	pdflatex $(FILE).tex
 	pdflatex $(FILE).tex
 view:
 	open $(FILE).pdf
