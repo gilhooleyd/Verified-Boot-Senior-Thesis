@@ -1,0 +1,61 @@
+\documentclass[../report.tex]{subfiles}
+\def\code#1{\texttt{#1}}
+\begin{document}
+
+\onehalfspacing
+\newpage
+
+\section{Security Recommendations}
+
+This section will combine the results in the last section to provide security
+recommendations for Verified Boot.
+While no security holes were found in Verified Boot, specific additions to the
+Vboot process would reduce the surface of attack in the future.
+Reducing the surface of attack would also allow other properties to be proven
+which would be more desirable.
+
+\subsection{Memory Locking}
+
+The biggest improvement to Verified Boot would be the addition of Memory
+Locking.
+Other Secure Boot implementations add hardware which enables locking sections
+of RAM\cite{elane}.
+This feature would help prove the security of Verified Boot by isolating it from
+any external repositories.
+
+As mentioned in the Software chapter, Verified Boot makes function calls into
+the Coreboot and Depthcharge repositories.
+If the Firmware Image is not locked before these function calls are made, then
+it is possible that the image is corrupted before the control returns back to
+Verified Boot.
+The Coreboot and Depthcharge repositories together contain 415,035 lines. 
+Compare this to the 16,000 lines in the Vboot repository and it is unlikely that
+Formal Verification could check that the other repositories do not corrupt the
+Image.
+
+%TODO: Add locking image
+
+The flow in Image~\ref{} shows an example of how the hardware locking would be
+implemented.
+This would prevent any Time of Check Time of Use (TOCTOU) Vulnerabilities that
+would exist outside of the Verified Boot library.
+% TODO: Add another reference here
+TOCTOU vulnerabilities are very common in secure programs\cite{tpm-toctou}.
+
+This recommendation was brought to the attention of Google Engineer's through
+the Chromium-OS email group.
+Their response was that it is possible to implement under current hardware, and
+it was recommended under NIST's ``Bios Protection Guidelines'', but it has not
+been implemented yet.
+
+Implementing this feature would allow a formal proof that the Image is not
+altered after being verified but before being executed. 
+Until this feature is implemented, there will always be the possibility of a
+TOCTOU attack vector.
+
+\subsection{TPM Key Storage}
+
+% TODO: Do the hashing and encrypting on the TPM
+% This would actually help because people could fake the hash
+
+\end{document}

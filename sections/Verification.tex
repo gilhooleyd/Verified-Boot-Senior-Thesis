@@ -399,7 +399,7 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
 
 \subsection{TPM Properties}
 
-\begin{figure}
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.6\linewidth]{tpm_call_graph}
   \caption{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
@@ -419,9 +419,6 @@ Now, we will be using the TPM's Firmware and an abstraction of Hardware to verif
 
 The main bulk of properties that we will be checking are Correctness and Liveness properties. 
 I will also mention how the TPM handles concurrency, and why this does not allow us to check possible properties.
-
-% Physical Presence
-% http://www.trustedcomputinggroup.org/wp-content/uploads/Physical-Presence-Interface_1-30_0-52.pdf pg 19
 
 % Rollback Attack
 
