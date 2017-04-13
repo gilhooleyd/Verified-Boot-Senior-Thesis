@@ -7,16 +7,51 @@
 Throughout this paper, we investigated the importance and feasibility of formally verifying a large scale system.
 Google's Verified Boot program was shown to be a good candidate for formal verification because of its security guarantees and its interactions across the hardware firmware boundary.
 Verified Boot's properties were expressed formally using CTL and many were verified against the C implementation using the model checker CMBC\@. 
-Model checking abstractions were discussed, such as unimplemented functions, which helped make the model checking possible in a short time. 
-Additionally, model checking was shown to be a good replacement for unit testing which is in place throughout many C systems.
+Model checking abstractions were discussed, such as abstracted functions, memory
+allocation, and non-deterministic array writes.
+These abstractions were necessary for Formal Verification tools to produce
+results on the Verified Boot software.
+Additionally, model checking was shown to be a good replacement for the unit
+testing assertions which is already in place throughout Verified Boot.
 
 \subsection{Future Work}
 
-Throughout the next semester I hope to refine my security properties and gather more CBMC data now that I have the model checking framework running.
-At the moment all hardware functions are abstracted as C programs, but this may provide different implementation mismatches between the simulation and a real platform.
-I hope to implement previous work which is able to take hardware specifications and build an accurate implementation for model checking\cite{ila}.
-In particular, a model of the TPM is necessary to fully verify that it can act as secure storage.
-As TPMs are widely used in systems for various security protocols, an ILA model may be useful beyond the scope of this project.
+The analysis on Verified Boot is helpful in the way that it can be applied to
+other systems. 
+Verified Boot was chosen because it is a widely used code base
+that crosses the Hardware Firmware boundary. 
+Now that it has been shown that analysis can work on real systems, academic
+work can be done on systems with more interesting behavior.
+Verified Boot uses Hardware, but there are very little opportunities for
+problems involving Hardware concurrency.
+Other systems include interweaving uses of non-blocking
+Hardware\cite{load-protocol} and these systems would showcase more strengths of the ILA functionality. 
+
+One direction for the ILA toolchain that has been considered but not explored
+is its use to verify that two hardware modules have the same functionality.
+This direction is important as there are many TPM's produced by various Hardware
+Vendors\cite{atmel-tpm}\cite{broadcom-tpm}\cite{infineon-tpm}, and the different 
+implementations have been found to vary significantly\cite{tcg-inside}.
+A full ILA description of a TPM would be very useful for comparing two hardware
+chips from different vendors, as well as verifying that a software
+implementation matches the Hardware implementation. 
+Once the entire TPM functionality exists in an ILA description, more
+verification could be done on the TPM API
+itself\cite{TPM-state}\cite{TPM-spec-verif}.
+
+Additionally, there are more areas in Google's Verified Boot that
+deserve more attention. 
+The Read-Write section of Verified Boot is ignored because it shares the
+majority of its code with the Read-Only section, but it also contains a few
+possibilities for attacks.
+The Update functionality of Verified Boot should also be worth mentioning,
+although this report already assumes that an attacker can upload arbitrary
+updates.
+
+In the future it is possible to extend the techniques in this paper to the rest of
+Verified Boot or other exciting academic projects.
+
+
 
 
 \end{document}
