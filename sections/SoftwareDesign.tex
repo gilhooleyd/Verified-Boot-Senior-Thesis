@@ -231,8 +231,9 @@ Repo is a tool to manipulate multiple code repositories.
 It's primary benefit is that it allows a company to specify how multiple git repositories should be installed and placed within a given file-system.
 This is both helpful and necessary as Chrome OS consists of over one thousand different external and internal repositories. 
 
-Coreboot, vboot\_reference, depthcharge, are the repositories used for the firmware boot process.
-The flow of Verfied Boot through the repos can be seen in
+Coreboot, vboot\_reference, and depthcharge, are the repositories used by Google
+for Verified Boot.
+The flow of Verified Boot through the repos can be seen in
 Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 
 \begin{figure}
@@ -249,7 +250,7 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
   verification}\label{fig:qemu_repos}
 \end{figure}
 
-\subsection{Coreboot}\label{coreboot}
+\subsection{Coreboot and Depthcharge}\label{coreboot}
 
 Coreboot is a fully Open-Sourced alternative to traditional BIOS implementations.~\cite{coreboot}
 It is lightweight and is configured to implement the full standard of the Unified Extensible Firmware Interface (UEFI).
@@ -259,8 +260,15 @@ The Coreboot code is responsible for doing very early initialization code on the
 % This includes things like setting up the GPIO pins, enabling hardware interrupts, setting up a large stack in RAM, and providing driver callbacks to the payload that it will eventually call.
 Coreboot is setup so that once a baseline level of initialization is complete, it passes control to another section of code called a ``payload''~\cite{coreboot-payload}.
 This payload is responsible for initializing the more specialized drivers, and the concept of a payload means that Google can keep support more hardware without altering the Coreboot source code.
+
 The payload that Coreboot calls to further initialize the Chromebook is Depthcharge.
-% Init done in src/mainboard/google/{link}/romstage.c
+Depthcharge contains platform specific functions like reading and writing
+commands to the TPM, or interacting with the SHA accelerator. 
+The vboot\_reference library will make calls back into Coreboot for platform
+specific access. 
+As this report was run on an emulated Chromebook and not a real platform, the
+Coreboot + Depthcharge repositories were replaced by new code in the CMBC-Vboot
+repo.
 
 \subsection{Vboot\_reference}
 
@@ -295,9 +303,10 @@ appendix.
 
 \subsection{CBMC-Vboot}
 
-The CBMC-Vboot is my personal repository for code\cite{my-repo}.
+The CBMC-Vboot is a repository created to connect Vboot to the emulated
+hardware used in this report\cite{my-repo}.
 The layout of this repository is discussed in the Appendix.
 We can see in Figure~\ref{fig:qemu_repos} that it is used as a wrapper to tie
 Vboot together with QEMU and the SWTPM libraries.
-It also holds python scripts which run the CBMC tests that I will describe in
+It also holds python scripts which run the CBMC tests that will be described in
 Section~\ref{sec:Verif}.
