@@ -42,10 +42,10 @@ The Read-Only memory is flashed into the laptop when the Chromebook is being bui
 The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
 In this way the RO Flash acts as the ``Root of Trust'' for the system.
 In security terms, the Verified Boot process claims to be secure as long as the
-Root of Trust holds (this is the claim that I will verify).
+Root of Trust holds (this is the claim that will be verified).
 
 Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
-The memory is organized according to the Flashmap which I have included in the appendix.
+The memory is organized according to the Flashmap which is included in the appendix.
 The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
 
@@ -218,27 +218,24 @@ easily, and this may help speed up boot times dramatically.
 
 QEMU~\cite{qemu-site} is an open source emulator that is used in the report to emulate the computer running Vboot.
 For this project it is used to emulate a 32 bit i386 CPU with a Memory Mapped TPM and SHA module.
-To run code, I am relying on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
+Starting Vboot relies on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
 QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
 As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this report it was easier to use QEMU's built-in bootloader.
 
 The boatloader code that interacted with QEMU (included in the appendix and the github link) was based off of a project developed for Open Source at Princeton by me and Lance Goodridge.
 The Open Source project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
 The Open Source project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
-These tools allowed me to create and compile a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
+These tools facilitated the creation of a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
 
 The QEMU emulator was modified to add a TPM and a SHA module, but as mentioned in Section~\ref{flash_mem} it does not include the Flash Memory.
 While the Flash Memory is important as a Root of Trust in the System, its purpose is very simple.
 Its main function is to provide read-only storage, and this is not a property that is difficult to be checked.
-Instead of adding Flash Memory to the QEMU emulation, I package the firmware
-image with code binary using a specialized linker script. %TODO link to Linker script
-The linker script loads the firmware image into the binary, and then QEMU loads
-the binary into memory.
+Instead of adding Flash Memory to the QEMU emulation, the Image is loaded
+directly into RAM using a specialized linker script. %TODO link to Linker script
 The firmware image would normally be located in the Flash Memory, but it is now
-located in RAM.
-
-% TODO: Get the SHA working
-% Using my own SHA implementation, close to the one used by coreboot
+located in RAM\@.
+The Read-Only properties of this section of RAM are not enforced, but will be
+assumed to be correct when the system is being analyzed.
 
 \section{Instruction Level Abstraction (ILA)}
 

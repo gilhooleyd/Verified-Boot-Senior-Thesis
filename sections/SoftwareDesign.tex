@@ -6,9 +6,9 @@ Verified Boot (Vboot) is a secure boot implementation only runs code that has
 been signed by Google and is untampered.
 Images that have been recognized as security risks will not be loaded and the system will restart into a Recovery Mode.
 Google has implemented different modes that Vboot can boot with and these modes alter the program flow and security guarantees.
-In this section I will discuss the security promises made by the system as well
+This section will discuss the security promises made by the system as well
 as the attack vectors that are not considered.
-I will also discuss relevant data structures and program flow.
+It will also discuss relevant data structures and program flow.
 
 \section{Security Promises}
 
@@ -164,9 +164,9 @@ Recovery is also the only way to roll the device back to an early image, and thi
 To start understanding the Vboot verification process, it is necessary to talk about the data structures that are used throughout. 
 These data structures are populated by the Firmware Image that is being
 verified. 
-Through this section I will start at the highest hierarchical level of data structure then explain the structures that are contained within.
+This section will start at the highest hierarchical level of data structure and then explain the structures that are contained within.
 
-\subsection{Firmware/Kernel Image}
+\subsection{Firmware Image}
 
 \begin{figure}
     \centering

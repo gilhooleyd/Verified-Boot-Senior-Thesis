@@ -1,17 +1,11 @@
 \chapter{Verification}\label{sec:Verif}
 
-In this section I will discuss the security properties used by the Read-Only
+This section will discuss the security properties used by the Read-Only
 section of Verified Boot. 
-Later in the section I verify these properties on the Hardware and
-Software system that I outlined in Section 2 and Section 3.
-The code for Verified Boot is taken from an unmodified vboot\_reference repository provided by Google. 
-The Firmware that interacts with this Hardware was created by me, however it was 
-modeled after the Firmware originally found in Google's Coreboot repository. 
-If Google released the sources for their Hardware, then this testing could be
-performed with no modification to the source code. 
-
-Properties in software are checked using CBMC, and Hardware modules are
-converted into C using the ILA toolchain.
+It will also verify these properties using the Hardware and
+Software elements that were outlined in Section 2 and Section 3.
+All properties are checked using the C Bounded Model Checker (CBMC).
+To check some properties, Hardware modules are converted into C using the ILA toolchain.
 
 \section{Vboot Properties}
 
@@ -268,21 +262,11 @@ Memory is never reclaimed.
 The idea for this abstraction originated from the work done in modeling memory
 by Franjo Ivancic\cite{eff-model-check}.
 
-% \subsubsection{Known CBMC Limitations}
-% 
-% In order to get CBMC running, certain limitations had to be observed.
-% The SAT generator of CBMC unrolls loops before converting the code into a model that can be checked.
-% This loop unroller is not able to unroll loops where the upper bound of the loop is data dependant.
-% Data Dependant loops need to have their unrolling amount specified by the user.
-% However, incorrect unrolling can lead to problems with verification.
-% If the unrolling number is too small, then CBMC results may be incorrect, while if the limit is too large the state space may be too large for CMBC to finish in a reasonable time.
-% % TODO: may want to remove this bit about Memcpy
-% Luckily there was only a single loop of this nature, which existed in the method "Memcpy".
-% Using the C implementation of Vboot I was able to determine that Memcpy needed no more than 1050 loop unrollings for the data driven portion of Vboot.
-
 \section{Verifying Vboot with CBMC}
 
-In the sections below I run tests on each Vboot function using CBMC\@.
+This section describes the verification tests on Vboot using CBMC\@.
+Each subsection begins with a diagram showing the functional call graph of what section of code is being verified.
+The diagrams are color-coordinated as followed.
 The blue functions are fully software functions that are implemented in the Vboot Library.
 The yellow functions connect to the Flash firmware on a real platform, but have been abstracted to return either non-deterministic data for Read-Write information, or hardcoded data for Read-Only information.
 The red functions connect to the TPM on a real platform, and are verified on the
@@ -411,8 +395,7 @@ In earlier sections we checked software properties by abstracting the TPM to a s
 This allowed us to check the larger rollback and protection properties, although we were assuming that the TPM Firmware functions were working correctly.
 Now, we will be using the TPM's Firmware and an abstraction of Hardware to verify correctness of the TPM's Firmware functions.
 
-The main bulk of properties that we will be checking are Correctness and Liveness properties. 
-I will also mention how the TPM handles concurrency, and why this does not allow us to check possible properties.
+The bulk of properties that will be checked are Correctness and Liveness properties. 
 
 % Rollback Attack
 
@@ -438,17 +421,13 @@ This is important for liveness, because if the Firmware is stuck polling a regis
 \subsection{Verifying TPM with ILA}   
 
 In order to check the TPM, the Vboot firmware had to use the TPM registers and
-command flow  described in Section~\ref{tpm_cmd_regs}.
-To accomplish this, I built an abstraction of the TPM using the ILA Framework.
-The ILA Framework allowed me to program a description of the TPM registers and
-command functionality.
-This description (referred to as a template), then used the SW TPM library to
-verify that the template behaved in the same way as the original TPM. 
-The ILA Framework then produced a specification that could be verified with the
-original Vboot software.
+command flow described in Section~\ref{tpm_cmd_regs}.
+This was accomplished by creating an abstraction of the TPM using the ILA framework.
+This abstraction described the TPM registers and command functionality in a way that could be verified by CMBC\@.
+The TPM abstraction contains only the subset of the TPM functionality required by Vboot, which was outlined in Section~\ref{sec:TPM}.
 
 The TPM ILA code can be seen in the appendix.
 The file \code{TPM\_template.py} is the ILA template.
 The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
-I used for verification.
-The simulator and the template are a formal description of the TPM's registers and command behavior that I outlined previous in Section~\ref{tpm_cmd_regs}. 
+were  used for verification.
+The simulator and the template are a formal description of the TPM's registers and command behavior that were outlined previous in Section~\ref{tpm_cmd_regs}. 
