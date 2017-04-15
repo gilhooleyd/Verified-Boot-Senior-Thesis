@@ -9,12 +9,12 @@ To check some properties, Hardware modules are converted into C using the ILA to
 
 \section{Vboot Properties}
 
-The properties that we will be checking can be separated into 3 categories: array accesses, program flow, and correctness.
+The properties that will be verified can be separated into 3 categories: array accesses, program flow, and correctness.
 The array access property restricts the writeable addresses in memory to valid array boundaries. 
-Program flow properties refer to the execution path and function call stack throughout the program.
+Program flow properties refer to the program's execution path.
 Correctness properties refer to facts about the code such that, if things were
 designed successfully, certain states should not be reached.
-Together these categories of properties should encompass each of claims that the system makes about security.
+Together these categories of properties should be enough to prove the security claims made by Vboot.
 
 These properties will be specified in Computation Tree Logic (CTL). 
 CTL adds temporal distinctions over propositional logic and this allows one to easily describe how a system changes over time.
@@ -26,57 +26,64 @@ Table~\ref{ctl_syn} describes the CTL syntax.
 \begin{table}[!htbp]
     \centering
     \caption{A description of the CTL syntax}\label{ctl_syn}
-    \begin{tabular}{|l|l|}
-        \hline
-        $Xp$ & $p$ is true in the next state\\ \hline
-        $Fp$ & $p$ is true eventually\\ \hline
-        $Gp$ & $p$ is always true\\ \hline
+    \begin{tabular}{ll}
+        \toprule Syntax & Description  \\ \bottomrule 
+        $Xp$ & $p$ is true in the next state\\ 
+        $Fp$ & $p$ is true eventually\\ 
+        $Gp$ & $p$ is always true\\ 
     \end{tabular}
 \end{table}
 
 \subsection{Memory Access Locations}
 
-Memory accesses in C are very important because the language allows for arbitrary addresses to be accessed. 
+Memory accesses in C are very important because C allows for arbitrary addresses to be accessed. 
 Addressing arrays before their starting address or after their final address is known as a buffer overrun and it is one of the most common security vulnerabilities. 
 Buffer overruns allow a program to write or read to arbitrary memory. 
-In this program, a buffer overrun could be used to modify the RSA public keys after they have been read in from secure storage, or it could modify the firmware image after it has been verified as secure. 
-Such modifications would defeat the security purposes of Vboot and for this reason it is important to prevent the accessing of arrays past the array boundaries.
-We can represent correct array accesses through formal specification using the formula below.
+In Vboot, a buffer overrun could be used to modify the RSA public keys after they have been read in from secure storage, or it could modify the firmware image after it has been verified as secure. 
+Such modifications would defeat the security claims of Vboot and for this reason it is important to prevent the accessing of arrays past the array boundaries.
 
+The equation below describes correct array accesses in CTL. 
 \begin{equation}
     G(a \to (i > 0 \land i < size(ptr)))
 \end{equation}
-
 In this equation $a$ is any array access, $ptr$ is the start of the array and $i$ is the access offset.
 This equation states that for every memory access, the index is greater than 0 so it cannot access memory before the array,  and the index is smaller than the size of the array so memory after the array cannot be accessed.
-Luckily, this problem is common enough that CBMC provides checking by default.
-However, This equation on its own is not strong enough to provide array access security for verified boot. 
-This is because Vboot uses pointer manipulation throughout in order to access structures and data within the Firmware Image. 
-Verified boot reads the image in as one contiguous blob and then uses size and offset variables to read more information.
-CBMC is not able to detect that this pointer manipulation is an out of bounds array access so this must be manually checked through the use of assertions each time something within the image is accessed.
-The pointer manipulation can be expressed formally through the following formula.
 
+Array indexing is common enough that CBMC provides checking by default.
+However, this check on its own is not strong enough to provide array access security for Vboot. 
+This is because Vboot uses pointer manipulation in order to access structures and data within the Image. 
+Vboot reads the Image from disk as one contiguous binary. 
+After the Image has been loaded, the data structures within the Image use size and offset variables to locate more data.
+CBMC is not able to automatically detect if this pointer manipulation results in an access outside of the Image.
+
+The following equation defines correct pointer manipulation in Vboot. 
 \begin{equation}
-    G(s \to \text{offset}(\text{struct}) + \text{size}(\text{struct}) <
+    G(\text{offset}(\text{struct}) + \text{size}(\text{struct}) <
     \text{size}(\text{img}) \land \text{offset}(\text{struct}) > 0)
 \end{equation}
+In this equation $struct$ is the structure being created from a pointer dereference, and $img$ is the image that it is being pointed to.
+The equation states that the offset and size of the struct do not go past the edge of the image and that the offset of the struct does is not negative.
+We can assume that the offset is not negative because Vboot offsets should only points forward in the Image.
 
-In this equation $s$ is each time a structure is created from a pointer dereference, $struct$ is the structure, and $img$ is the image that it is being pointed to.
-The equation states that the offset and size of the struct do not go past the edge of the image and that the offset of the struct does is not negative or before the beginning of the image.
-
-Together these properties state that array accesses must be in bounds and that structure dereferencing must be in bounds of the image that is being referenced.
+Together these two properties state that array accesses must be in bounds and that structure dereferencing must be in bounds of the image that is being referenced.
 As these are the two memory referencing techniques that have the potential for overrun, these properties protect the system against overrun attacks.
 
 \subsection{Program Flow properties}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{verification_flow.png}
+  \caption[Verified Boot Program Flow]{The logical flow for Vboot.}\label{fig:v_flow}
+\end{figure}
+
 There needs to be an ordered constraint on the flow of the program. 
 If the program flow is described formally then it will be easy to check that all stages of secure boot were called and in the correct order.
 This will catch incorrect programs that skip steps and therefore skip verifying the image, or programs that execute steps out of order and therefore access data that has not been verified yet.
-The graph for program flow is shown in Figure~\ref{fig:verif_flow}.
-When verifying the flow of Vboot it is necessary to note that there are two firmware images stored in the system, Image A and Image B, and either can be used in the Vboot process. 
+The graph for program flow is shown in Figure~\ref{fig:v_flow}.
+When verifying the flow of Vboot it is necessary to note that there are two Images stored in the system, Image A and Image B, and either can be used in the Vboot process. 
 It is also necessary to note that Developer mode will skip a step in the verification process, and that this skipped step is a valid part of the Vboot flow.
 
-Let $s_i$ correspond to the ith stage from Figure~\ref{fig:verif_flow} and $s_{ai}$ or $s_{bi}$ correspond to that stage for Image A or Image B respectively.
+Let $s_i$ correspond to the ith stage from Figure~\ref{fig:v_flow} and $s_{ai}$ or $s_{bi}$ correspond to that stage for Image A or Image B respectively.
 
 The equation below states that at any time, we must be in at least one of five stages for either image A or image B.
 % Must be in a defined state
@@ -86,7 +93,7 @@ The equation below states that at any time, we must be in at least one of five s
 
 The equation below states the transitions available for Image A.
 Each i\textsuperscript{th} stage can transition either to itself or the following stage.
-Image A also has the ability to fail and have a transition immediately to the first stage of verifying Image B.
+Image A has the ability to fail and transition immediately to the first stage of attesting Image B.
 
 % Image A transitions to next or to B
 \begin{equation}
@@ -94,8 +101,8 @@ Image A also has the ability to fail and have a transition immediately to the fi
 \end{equation}
 
 Now we will describe the state transitions for Image B. 
-They are similar to Image A but Image B is always tried secondarily and can only transition to the next stage. 
-Image B cannot transition back to verifying Image A or there would be the possibilities of an infinite loop of verifying incorrect images.
+They are similar to Image A but Image B is always tried second and can only transition to the next stage. 
+Image B cannot transition back to verifying Image A or it would be possible to have an infinite loop of attesting incorrect images.
 
 % Image B transitions to next
 \begin{equation}
@@ -103,20 +110,20 @@ Image B cannot transition back to verifying Image A or there would be the possib
 \end{equation}
 
 The final equation refines the transition for state $s_0$ for Image A and B.
-In Figure~\ref{fig:verif_flow} we can see that state $s_0$ can transition to either $s_1$ but it also has a special transition to $s_2$ that is only valid if Developer Mode is enabled.
+In Figure~\ref{fig:v_flow} we can see that state $s_0$ can transition to $s_1$ but it also has a special transition to $s_2$ that is only valid if Developer Mode is enabled.
 
 % State 0 can skip state 1 if in Developer
 \begin{equation}
     G(s_0 \to (s_0 \lor s_{1} \lor (M_D \land s_{2})))
 \end{equation}
 
-All together these equations fully describe the program flow graph in Figure~\ref{fig:verif_flow}. 
+All together these equations fully describe the program flow graph in Figure~\ref{fig:v_flow}. 
 If these hold then steps will not be skipped in the verification process and we can be assured that verification of the image will be attempted in order.
 
 \subsection{Correctness properties}
 
 Correctness properties refer to the code itself and help to determine if it has been written correctly.
-For Verified Boot, correctness properties are focusing on the correct attestation of the image and attempting to guarantee that an incorrect image cannot be marked as correct and loaded for execution.
+For Verified Boot, correctness properties focus on the correct attestation of the image and the guarantee that an incorrect Image cannot be marked as correct and loaded for execution.
 
 The following property states that if the system is not in developer mode and the signature verification fails, then the system will eventually reach the failure state for that image.
 It is important that failure and passing is tracked on an image basis because it is possible for Image A to have a bad signature but for Vboot to verify and load a correct Image B.
@@ -155,10 +162,14 @@ The next property checks that if both images fail, then the Vboot process will f
 % TODO: maybe add a hardware return correctly property
 % TODO: maybe add that if hash(image) = img.hash -> image = img
 
-In the equations above, img refers to the image to be verified (either Image A or Image B)  and rootKey is Google's public key that has been loaded out of the gbb.
+In the equations above, img refers to the Image to be verified (either Image A or Image B)  and rootKey is Google's public key that has been loaded out of the GBB.
 $M_d$ refers to developer mode being active and $M_r$ refers to recovery mode being active.
-Img.version is the RW firmware version and prevVersion is the last seen version that is stored in the TPM\@.
-These properties will be proved contrapositively, meaning that when verified boot passes we will check that the antecedent is also false.
+Img.version is the Image version number and prevVersion is the last seen version that is stored in the TPM\@.
+
+The contrapositive of these properties will be proved.
+The contrapositive of a conditional is the inverse of the condition where the antecedent and consequent are negated.
+For example, instead of proving that ``if the hash fails then the image will fail'' it will be proved that ``if the image passes then the hash must have passed''. 
+This is easier to check and is logically equivalent.
 
 
 \section{CBMC}
@@ -181,7 +192,7 @@ CBMC library.
 %   program undergoes to be verified. The right describes the CBMC API.}\label{fig:CBMC_api}
 % \end{figure}
 
-The CMBC API is very simple.
+The CBMC API is very simple.
 The list below describes the 3 functions in the CBMC API.
 
 \begin{itemize}
