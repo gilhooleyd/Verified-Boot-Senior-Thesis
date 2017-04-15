@@ -320,6 +320,9 @@ This project was able to hook Google's Unit Test assertions into CBMC
 assertions, so Google specific properties can be verified for free along with 
 the larger security properties. 
 
+\subsection{Main}
+
+
 \subsection{LoadFirmware}
 
 \begin{figure}[!htbp]
@@ -399,7 +402,7 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
 
 \begin{figure}[!htbp]
   \centering
-  \includegraphics[width=0.6\linewidth]{tpm_call_graph}
+  \includegraphics[width=0.6\linewidth]{tpm_fun.png}
   \caption[TPM Call Graph]{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
 \end{figure}
 
