@@ -1,11 +1,4 @@
-\documentclass[../report.tex]{subfiles}
-\def\code#1{\texttt{#1}}
-\begin{document}
-
-\onehalfspacing
-\newpage
-
-\section{Security Recommendations}
+\chapter{Security Recommendations}
 
 This section will combine the results in the last section to provide security
 recommendations for Verified Boot.
@@ -14,7 +7,7 @@ Vboot process would reduce the surface of attack in the future.
 Reducing the surface of attack would also allow other properties to be proven
 which would be more desirable.
 
-\subsection{Memory Locking}
+\section{Memory Locking}
 
 The biggest improvement to Verified Boot would be the addition of Memory
 Locking.
@@ -53,9 +46,7 @@ altered after being verified but before being executed.
 Until this feature is implemented, there will always be the possibility of a
 TOCTOU attack vector.
 
-\subsection{TPM Key Storage}
+\section{TPM Key Storage}
 
 % TODO: Do the hashing and encrypting on the TPM
 % This would actually help because people could fake the hash
-
-\end{document}
