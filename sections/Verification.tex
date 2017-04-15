@@ -300,6 +300,8 @@ Appendix.
 Finally, there will be a table describing the results of each CBMC run.
 CMBC uses an implementation of a SAT solver known as the MiniSat solver\cite{minisat}.
 This solver outputs unSAT if the assertions hold and SAT if they do not. 
+The ``steps'' column is the number of C lines that were stepped through to reach the proof conclusion.
+The ``VCC'' column is the number of user assertions that were being verified.
 
 \subsection{Google's Assertions}
 
@@ -335,7 +337,7 @@ The CBMC test results for this function can be seen in Table~\ref{ldfw_results}.
 Below is an itemized list of what each test is verifying.
 
 \begin{itemize}
- \item  Google unit tests -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
+ \item  Google Assertions -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
  \item  rollback test -- tests that under no input conditions will LoadFirmware choose a firmware image with a lower version number (see Property~\ref{eq:rollback}).
  \item  rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
  \item  hash failure -- tests that it is impossible to verify an image as correct  if hashing the Firmware body (the VbExHashFirmwareBody function) returns an error (see Property~\ref{eq:hash_cor}).
@@ -346,20 +348,21 @@ Below is an itemized list of what each test is verifying.
 \begin{table}[!htbp]
     \centering
     \caption{CBMC tests on the LoadFirmware function}\label{ldfw_results}
-    \begin{tabular}{|l|l|l|l|l|l|l|l|}
-        \hline
-        test name & steps & VCCs & vars  & clauses & time (s) & sat/unsat  \\ \hline \hline
-        Google unit\_tests & 6460 & 34 & 1095643 & 24391723 & 67.02 & unsat \\ \hline
-        rollback     & 4125 & 1 & 135239 & 1026823 & 4.79 & unsat \\ \hline
-        rollback/rec & 4123 & 1 & 135276 & 1026983 & 4.68 & sat \\ \hline
-        Hash Failure & 4182 & 2 & 137431 & 1043724 & 4.45 & unsat \\ \hline
-        RSA  Failure & 4180 & 2 & 137825 & 1043921 & 4.45 & unsat \\ \hline
-        Array Accesses & 4130 & 22 & 102660 & 640715 & 4.51 & unsat \\ \hline
+    \begin{tabular}{llllll}
+        \toprule
+        test name & steps & VCCs  & time (s) & sat/unsat  \\ \bottomrule
+        Google Assertions & 6460 & 34 & 67.02 & unsat \\
+        rollback     & 4125 & 1 & 4.79 & unsat \\
+        rollback/rec & 4123 & 1 & 4.68 & sat \\
+        Hash Failure & 4182 & 2 & 4.45 & unsat \\
+        RSA  Failure & 4180 & 2 & 4.45 & unsat \\
+        Array Accesses & 4130 & 22 & 4.51 & unsat \\
     \end{tabular}
 \end{table}
 
 We can see from these tests that CBMC is working successfully and in a reasonable time.
-The Google unit test framework is can be put to use with the CBMC framework using minor modifications, and the formal verification can be done in a very reasonable time.
+The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
+These results also show that Formal Verification tools are a possibility for checking the assertions that already exist in Google's testing framework.
 
 \subsection{VbSelectFirmware}
 
@@ -380,15 +383,15 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
  \item  Array accesses -- check for all possibilities of array bounds errors.
 \end{itemize}
 
-\begin{table}[]
+\begin{table}[!htbp]
     \centering
     \caption{CBMC tests on function VbSelectFirmware}\label{sfw_results}
-    \begin{tabular}{|l|l|l|l|l|l|l|l|}
-        \hline
-        test name & steps & VCCs & vars  & clauses & time (s) & sat/unsat  \\ \hline \hline
-        TPM locking & 6 & 5269 & 13513 & 16784 & 0.07 & unsat \\ \hline
-        LoadFirmware & 2 & 5264 & 13404 & 16209 & 0.07 & unsat \\ \hline
-        Array Accesses & 5257 & 0 & 0 & 0 & 0 &  unsat \\ \hline
+    \begin{tabular}{llllll}
+        \toprule
+        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
+        TPM locking & 5269 & 6 & 0.07 & unsat \\
+        LoadFirmware & 5264 & 2 &  0.07 & unsat \\
+        Array Accesses & 5257 & 0 & 0 &  unsat \\
     \end{tabular}
 \end{table}
 
