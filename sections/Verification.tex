@@ -201,11 +201,13 @@ value, and this is represented cleanly by a non-deterministic integer.
 CBMC exhaustively checks user assertions against all possible non-deterministic
 integer values.
 
-\subsection{Abstractions}
+\section{Abstractions}
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
 Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 8GB of RAM on my local machine and then be cancelled.
 In order to check properties, abstractions needed to be found such that parts of the Vboot flow could be checked at a single time.
+
+\subsection{Function Over-Abstractions}
 
 The key abstraction used by this thesis is that individual functions are mostly
 self contained.
@@ -220,6 +222,8 @@ This method is an over-abstraction of a functions found in the Vboot library.
 An over-abstraction contains the full set of states found in the original function, plus additional states that would not be possible.
 Because the over-abstraction is a super-set of the original states, any properties that are proved with the over-abstraction will also be proved on every state of the original function.
 Therefore any properties proved with abstracted functions will also hold if the real functions were left in place.
+
+\subsection{Loop Removal}
 
 Another helpful abstraction is to remove long loops that are present in Verified
 Boot.
@@ -236,6 +240,8 @@ still perform verification on every acceptable index and find possible
 counterexamples.
 This abstraction was taken from an earlier thesis that also performed Formal
 Verification~\cite{elane}. 
+
+\subsection{Memory Allocation}
 
 The final abstraction is the creation of a simple memory allocation function so
 CBMC will handle pointer manipulation correctly.
