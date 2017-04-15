@@ -1,4 +1,4 @@
-\chapter{Verification}\label{sec:Verif}
+\chapter{Verification Setup}\label{sec:Verif}
 
 This section will discuss the security properties used by the Read-Only
 section of Verified Boot. 
@@ -279,8 +279,24 @@ Memory is never reclaimed.
 The idea for this abstraction originated from the work done in modeling memory
 by Franjo Ivancic\cite{eff-model-check}.
 
-\section{Verifying Vboot with CBMC}
+\subsection{Google's Assertions}
 
+Google has already created a Unit Test Framework for the Verified Boot process.
+This framework tests various properties of each function.
+Like most Unit Testing Frameworks, the functions are not tested in conjunction
+with the rest of the system.
+The framework given also stubs out any calls to Hardware, meaning that it 
+will not catch any errors across the Hardware Software boundary.
+Finally, the framework only checks for the input conditions provided. 
+Each function tested has roughly five to fifteen input conditions that are
+checked, which is not exhaustive.
+
+Luckily, the framework that Google uses also relies on assertions.
+This project was able to hook Google's Unit Test assertions into CBMC
+assertions, so Google specific properties can be verified for free along with 
+the larger security properties. 
+
+\chapter{Verification Results}\label{sec:Verif}
 
 \begin{figure}[!htbp]
   \centering
@@ -309,24 +325,7 @@ This solver outputs unSAT if the assertions hold and SAT if they do not.
 The ``steps'' column is the number of C lines that were stepped through to reach the proof conclusion.
 The ``VCC'' column is the number of user assertions that were being verified.
 
-\subsection{Google's Assertions}
-
-Google has already created a Unit Test Framework for the Verified Boot process.
-This framework tests various properties of each function.
-Like most Unit Testing Frameworks, the functions are not tested in conjunction
-with the rest of the system.
-The framework given also stubs out any calls to Hardware, meaning that it 
-will not catch any errors across the Hardware Software boundary.
-Finally, the framework only checks for the input conditions provided. 
-Each function tested has roughly five to fifteen input conditions that are
-checked, which is not exhaustive.
-
-Luckily, the framework that Google uses also relies on assertions.
-This project was able to hook Google's Unit Test assertions into CBMC
-assertions, so Google specific properties can be verified for free along with 
-the larger security properties. 
-
-\subsection{LoadFirmware}
+\section{LoadFirmware}
 
 \begin{figure}[!htbp]
   \centering
@@ -370,7 +369,7 @@ We can see from these tests that CBMC is working successfully and in a reasonabl
 The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
 These results also show that Formal Verification tools are a possibility for checking the assertions that already exist in Google's testing framework.
 
-\subsection{VbSelectFirmware}
+\section{VbSelectFirmware}
 
 \begin{figure}[!htbp]
   \centering
@@ -401,7 +400,7 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
     \end{tabular}
 \end{table}
 
-\subsection{TPM Send and Receive}
+\section{TPM Send and Receive}
 
 \begin{figure}[!htbp]
   \centering
@@ -440,7 +439,7 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
     \end{tabular}
 \end{table}
 
-\subsection{TPM TLCL functions}
+\section{TPM TLCL functions}
 
 The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
 Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
