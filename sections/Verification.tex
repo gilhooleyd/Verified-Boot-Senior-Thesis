@@ -30,7 +30,7 @@ Table~\ref{ctl_syn} describes the CTL syntax.
         \toprule Syntax & Description  \\ \bottomrule 
         $Xp$ & $p$ is true in the next state\\ 
         $Fp$ & $p$ is true eventually\\ 
-        $Gp$ & $p$ is always true\\ 
+        $Gp$ & $p$ is always true\\ \bottomrule
     \end{tabular}
 \end{table}
 
@@ -281,15 +281,21 @@ by Franjo Ivancic\cite{eff-model-check}.
 
 \section{Verifying Vboot with CBMC}
 
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{full_flow.png}
+  \caption[Vboot Full Call Graph]{The call graph of functions for all of Verified Boot}\label{fig:loadfw}
+\end{figure}
+
 This section describes the verification tests on Vboot using CBMC\@.
 Each subsection begins with a diagram showing the functional call graph of what section of code is being verified.
 The diagrams are color-coordinated as followed.
 The blue functions are fully software functions that are implemented in the Vboot Library.
-The yellow functions connect to the Flash firmware on a real platform, but have been abstracted to return either non-deterministic data for Read-Write information, or hardcoded data for Read-Only information.
 The red functions connect to the TPM on a real platform, and are verified on the
 ILA TPM for this report.
-The purple functions connect to Vboot's software RSA library. 
-The green functions connect to the ILA SHA model. 
+The purple functions connect to the SHA accelerator on a real platform, and 
+are verified on the ILA SHA for this report.
 
 For each function being verified, the connecting functions are replaced with
 abstractions.
@@ -319,9 +325,6 @@ Luckily, the framework that Google uses also relies on assertions.
 This project was able to hook Google's Unit Test assertions into CBMC
 assertions, so Google specific properties can be verified for free along with 
 the larger security properties. 
-
-\subsection{Main}
-
 
 \subsection{LoadFirmware}
 
@@ -359,7 +362,7 @@ Below is an itemized list of what each test is verifying.
         rollback/rec & 4123 & 1 & 4.68 & sat \\
         Hash Failure & 4182 & 2 & 4.45 & unsat \\
         RSA  Failure & 4180 & 2 & 4.45 & unsat \\
-        Array Accesses & 4130 & 22 & 4.51 & unsat \\
+        Array Accesses & 4130 & 22 & 4.51 & unsat \\\bottomrule
     \end{tabular}
 \end{table}
 
@@ -394,11 +397,11 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
         test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
         TPM locking & 5269 & 6 & 0.07 & unsat \\
         LoadFirmware & 5264 & 2 &  0.07 & unsat \\
-        Array Accesses & 5257 & 0 & 0 &  unsat \\
+        Array Accesses & 5257 & 0 & 0 &  unsat \\\bottomrule
     \end{tabular}
 \end{table}
 
-\section{TPM Properties}
+\subsection{TPM Send and Receive}
 
 \begin{figure}[!htbp]
   \centering
@@ -406,51 +409,96 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
   \caption[TPM Call Graph]{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
 \end{figure}
 
-The Read-Only Firmware is responsible for setting up the TPM and protecting its
+Vboot is responsible for setting up the TPM and protecting its
 sections against the rest of the system that will eventually be loaded.
-TPM's responsibilities from Chrome are to securely store the boot state and the
-version state.
-TPM's storage of the version state allows Vboot to claim that it protects against 
+The TPM is responsible for securely storing the boot state and the
+Image's version number.
+TPM's storage of the version number allows Vboot to protect against 
 an attacker loading an older, less secure image from Google (Rollback attack).
-TPM's storage of the boot state allows Vboot to claim protection against an attacker loading a Google Developer image onto a non-developer machine.
+TPM's storage of the boot state allows Vboot to protect against an attacker 
+changing the developer mode or recovery mode in mid-boot.
 
 In earlier sections we checked software properties by abstracting the TPM to a simple storage array. 
-This allowed us to check the larger rollback and protection properties, although we were assuming that the TPM Firmware functions were working correctly.
-Now, we will be using the TPM's Firmware and an abstraction of Hardware to verify correctness of the TPM's Firmware functions.
+This allowed us to check larger properties, although we were assuming that the TPM functions were working correctly.
+Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM functions.
 
-The bulk of properties that will be checked are Correctness and Liveness properties. 
+\begin{itemize}
+   \item TPM Liveness -- Checks that the function will not enter a state where it polls on an unchanging TPM register
+   \item TPM Error Handling -- Checks that the function will only return success if the TPM has performed a Send and Receive action successfully
+   \item TPM Data Receive -- Checks that the function will not return if the TPM still has data to send 
+\end{itemize}
 
-% Rollback Attack
+\begin{table}[!htbp]
+    \centering
+    \caption{CBMC tests on function VbExTpmSendReceive}\label{sfw_results}
+    \begin{tabular}{llllll}
+        \toprule
+        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
+        TPM Liveness & & & & \\
+        TPM Error Handling &  &  & & \\
+        TPM Data Receive &  &  & & \\\bottomrule
+    \end{tabular}
+\end{table}
 
-\subsection{ILA for Hardware}   
+\subsection{TPM TLCL functions}
 
-\subsection{TPM Properties}   
+The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
+Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
+These tests verify correct functionality for the TLCL commands that are used by Vboot. 
 
-%TODO get graph of Vboots TPM functions
-Some properties are possible to prove using Hardware and Firmware separately.
-The first run is showing that each TPM function will only return true if it receives the ``success'' back from the TPM\@.
-Once we have this property we can also prove that the TPM will only return the ``success'' value if its operations are completed successfully. 
-Combining these two properties can give us an idea of correctness for the system.
+\begin{itemize}
+   \item TLCL Error Handling --  all functions return success only if the TPM command completes successfully
+   \item NV Write success -- the TPM receives the same value passed to the function
+   \item NV Read success --  the function receives the same value saved in the TPM
+   \item Locking success --  the function returns success only if the TPM locks
+   \item PCR Extend success --  the function returns success only if the PCR value updates with the new hash value
+   \item PCR Extend success --  the function receives the same value stored in the TPM PCR
 
-However, there are some properties that are much easier to prove with the 
-Hardware and Firmware together.
-In the third run we have the property that the firmware will always read every available byte from the TPM command fifo.
-This property is important to show the Firmware is correct and it relies on interactions between Hardware and Firmware.
-The fourth run checks that each function will always return. 
-This is important for liveness, because if the Firmware is stuck polling a register forever then the system will not boot.
+\end{itemize}
 
-%TODO: Get TPM CBMC table up and running here
+\begin{table}[!htbp]
+    \centering
+    \caption{CBMC tests on TLCL Library}\label{sfw_results}
+    \begin{tabular}{llllll}
+        \toprule
+        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
+        TLCL Error Handling& & & & \\
+        NV Write success&  &  & & \\
+        NV Read success&  &  & & \\
+        Locking success&  &  & & \\
+        PCR Extend success&  &  & & \\
+        PCR Read success&  &  & & \\\bottomrule
+    \end{tabular}
+\end{table}
 
-\subsection{Verifying TPM with ILA}   
-
-In order to check the TPM, the Vboot firmware had to use the TPM registers and
-command flow described in Section~\ref{tpm_cmd_regs}.
-This was accomplished by creating an abstraction of the TPM using the ILA framework.
-This abstraction described the TPM registers and command functionality in a way that could be verified by CMBC\@.
-The TPM abstraction contains only the subset of the TPM functionality required by Vboot, which was outlined in Section~\ref{sec:TPM}.
-
-The TPM ILA code can be seen in the appendix.
-The file \code{TPM\_template.py} is the ILA template.
-The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
-were  used for verification.
-The simulator and the template are a formal description of the TPM's registers and command behavior that were outlined previous in Section~\ref{tpm_cmd_regs}. 
+% \subsection{ILA for Hardware}   
+% 
+% \subsection{TPM Properties}   
+% 
+% Some properties are possible to prove using Hardware and Firmware separately.
+% The first run is showing that each TPM function will only return true if it receives the ``success'' back from the TPM\@.
+% Once we have this property we can also prove that the TPM will only return the ``success'' value if its operations are completed successfully. 
+% Combining these two properties can give us an idea of correctness for the system.
+% 
+% However, there are some properties that are much easier to prove with the 
+% Hardware and Firmware together.
+% In the third run we have the property that the firmware will always read every available byte from the TPM command fifo.
+% This property is important to show the Firmware is correct and it relies on interactions between Hardware and Firmware.
+% The fourth run checks that each function will always return. 
+% This is important for liveness, because if the Firmware is stuck polling a register forever then the system will not boot.
+% 
+% %TODO: Get TPM CBMC table up and running here
+% 
+% \subsection{Verifying TPM with ILA}   
+% 
+% In order to check the TPM, the Vboot firmware had to use the TPM registers and
+% command flow described in Section~\ref{tpm_cmd_regs}.
+% This was accomplished by creating an abstraction of the TPM using the ILA framework.
+% This abstraction described the TPM registers and command functionality in a way that could be verified by CMBC\@.
+% The TPM abstraction contains only the subset of the TPM functionality required by Vboot, which was outlined in Section~\ref{sec:TPM}.
+% 
+% The TPM ILA code can be seen in the appendix.
+% The file \code{TPM\_template.py} is the ILA template.
+% The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
+% were  used for verification.
+% The simulator and the template are a formal description of the TPM's registers and command behavior that were outlined previous in Section~\ref{tpm_cmd_regs}. 
