@@ -79,9 +79,15 @@ These transitions will be described in more detail in Section~\ref{sec:boot-mode
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{verification_flow.png}
-  \caption[Verified Boot Program Flow]{The logical flow for verifying the firmware image. Notice
+  \caption[Verified Boot Program Flow]{The logical flow for attesting the Image. Notice
   the different path for Developer mode, and the possibilities for
   failure.}\label{fig:verif_flow}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{attest_flow.png}
+  \caption[General Attest Flow]{The logical flow for attesting any data
+      structure.}\label{fig:attest_flow}
 \end{figure}
 
 Vboot's process for attesting the Image is described as follows: Vboot first
