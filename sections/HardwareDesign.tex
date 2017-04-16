@@ -1,48 +1,44 @@
 \chapter{Hardware Design}
 
 This section describes the Hardware design of Google's Verified Boot. 
-Because Verified Boot is the first software run on a Chromebook, it is
-responsible for initializing all of the system's hardware modules.
 
 Verified boot main job is to check that the image being loaded originated from
 Google and has not been modified. 
-This is accomplished by cryptographic functions like hashing and signing.
+This is accomplished by the cryptographic functions of hashing and signing.
 These functions can be computationally expensive and they are used often in a
-modern computer, so they are good candidate for hardware modules.  
+modern computer, so they are good candidate for hardware acceleration.  
 
-The hardware modules can be broken into two groups, secure storage and hardware accelerator.
+The hardware modules used by Verified Boot can be broken into two groups: secure storage and hardware accelerator.
 For secure storage there is an Flash memory module that provides 
 Read-Only non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
-For hardware accelerators there are the cryptographic accelerator that
+For hardware accelerators there is the cryptographic accelerator that
 implements the Secure Hash Algorithm (SHA) 
 
 While the code for Vboot is Open Sourced and available online, the laptop's
 hardware does not have source code available.
-However, Google does release documents describing specifications for the
+However, Google has released documents describing specifications for the
 Hardware modules required. 
-These specifications were used to pick Open Sourced hardware that could be made
+These specifications were used to pick Open Source hardware that could be made
 to work with the Vboot code. 
-While this means that verification was being done on different hardware, the
-same techniques can easily be applied if the Chromebook hardware was ever
-released.
+Verification is not done on Chromebook hardware because source code access for
+the hardware is not available. 
+However, if it becomes available, then the techniques outlined will be easily
+applicable to the real hardware. 
 
 \section{Flash Memory}\label{flash_mem}
 
 The Flash Memory is an amount of extra non-volatile memory connected to every Chromebook. 
 The Flash Memory contains both a Read-Only section and a Read-Write section of memory.
 The Read-Only section is arguably the most important piece of hardware because it is the Root of Trust of the Vboot system.
-Root of Trust means that the memory within the Read-Only section is assumed to be correct.
-The code within this section is the root, or base, that is responsible for verifying the rest of the Vboot process.
-The Read-Only section is assumed to be untampered because it can only be written
-to by Google when the laptop was created.
+The Root of Trust is the set of Software and Hardware elements that are
+inherently secure\cite{RoT}.
+The code within the Read-Only section is the root, or base, that is responsible for verifying the rest of the Vboot process.
 The Read-Only section is enforced by a physical screw, called the Write Protect screw, which is located in the laptop.
 Removing this screw removes the Root of Trust, but doing so voids the laptop's warranty.
 
 The Read-Only memory is flashed into the laptop when the Chromebook is being built in the factory, before the Read-Only screw is added to the casing. 
 The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
-In this way the RO Flash acts as the ``Root of Trust'' for the system.
-In security terms, the Verified Boot process claims to be secure as long as the
-Root of Trust holds (this is the claim that will be verified).
+Verified Boot claims to be secure as long as the Root of Trust holds.
 
 Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
 The memory is organized according to the Flashmap which is included in the appendix.
@@ -89,7 +85,7 @@ On the right we can see the registers of the TPM that are accessed by the CPU.}
 The CPU communicates to the TPM by reading and writing specific memory addresses.
 These addresses allow the CPU to send multi-byte commands to the TPM and receive multi-byte responses, even though a single byte is read or written at a time.
 The addresses and names of the registers can be seen in Figure~\ref{fig:tpm_hw}.
-I describe the registers below.
+The registers are described below.
 
 \begin{itemize}
     \item \code{Status} --- Reading this register returns a value with flags
@@ -142,7 +138,10 @@ The PCRs are iteratively extended with measurements of the system, for example,
 the hash of the Read Only Firmware state, then the hash of the Read Write
 Firmware state, and then the hash of the Kernel state.
 The final result will be identical each time if and only if there were no changes in each of the things being measured.
-By the definition of hashing, it is difficult also to find a fake configuration of the system that will hash to the same value as a correct configuration, meaning that if the hashes are equal it is reasonable to assume that the system is unchanged. 
+Because SHA hashing is collision resistant, it is difficult to find a fake
+configuration of the system that will hash to the same value as a correct
+configuration.
+This means that if the hashes are equal it is reasonable to assume that the system is unchanged. 
 
 Under specification 1.2, a TPM is required to have 21 PCRS, each PCR is 20 bytes
 long and they are stored in the TPM's non-volatile storage.
@@ -167,12 +166,12 @@ hash result.
 %TODO: Verify these registers
 The SHA module is much simpler to use than the TPM in terms of Memory Mapped
 Registers. 
-Writing to the  \code{sha\_start} register causes the module to start the
-Hashing process.
 Writing to the \code{sha\_rdaddr} tells the module where to read the input data.
 The module will read \code{sha\_len} bytes of the input data.
 Writing to the \code{sha\_rdaddr} tells the module where to put the final 20
 bytes of output data.
+Writing to the  \code{sha\_start} register causes the module to start the
+Hashing process.
 Reading the \code{sha\_state} register returns the state that the module is in.
 This register is how a software program knows the module has completed its
 operation.
@@ -216,20 +215,25 @@ easily, and this may help speed up boot times dramatically.
   \label{fig:qemu_layout}
 \end{figure}
 
-QEMU~\cite{qemu-site} is an open source emulator that is used in the report to emulate the computer running Vboot.
+QEMU~\cite{qemu-site} is an open source emulator that is used in the report to
+emulate the SoC running Vboot.
 For this project it is used to emulate a 32 bit i386 CPU with a Memory Mapped TPM and SHA module.
 Starting Vboot relies on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
 QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
 As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this report it was easier to use QEMU's built-in bootloader.
 
-The boatloader code that interacted with QEMU (included in the appendix and the github link) was based off of a project developed for Open Source at Princeton by me and Lance Goodridge.
-The Open Source project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
-The Open Source project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
+The boatloader code that interacted with QEMU (included in the appendix and the
+github link) was based off of a project developed for ``Open Source at
+Princeton'' by me and Lance Goodridge.
+The project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
+The project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
 These tools facilitated the creation of a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
 
-The QEMU emulator was modified to add a TPM and a SHA module, but as mentioned in Section~\ref{flash_mem} it does not include the Flash Memory.
+The QEMU emulator was modified to add a TPM and a SHA module. 
+However, it does not include the Flash Memory.
 While the Flash Memory is important as a Root of Trust in the System, its purpose is very simple.
-Its main function is to provide read-only storage, and this is not a property that is difficult to be checked.
+Its function is to provide read-only storage, and this is a property inherent to
+the Hardware.
 Instead of adding Flash Memory to the QEMU emulation, the Image is loaded
 directly into RAM using a specialized linker script. %TODO link to Linker script
 The firmware image would normally be located in the Flash Memory, but it is now
