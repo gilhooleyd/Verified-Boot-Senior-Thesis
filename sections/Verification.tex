@@ -296,12 +296,12 @@ This project was able to hook Google's Unit Test assertions into CBMC
 assertions, so Google specific properties can be verified for free along with 
 the larger security properties. 
 
-\chapter{Verification Results}\label{sec:Verif}
+\chapter{Verification Results}\label{sec:VerifResults}
 
 \begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\linewidth]{full_flow.png}
-  \caption[Vboot Full Call Graph]{The call graph of functions for all of Verified Boot}\label{fig:loadfw}
+  \caption[Vboot Full Call Graph]{The call graph of functions for all of Verified Boot}\label{fig:allflow}
 \end{figure}
 
 This section describes the verification tests on Vboot using CBMC\@.
@@ -429,7 +429,7 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on function VbExTpmSendReceive}\label{sfw_results}
+    \caption{CBMC tests on function VbExTpmSendReceive}\label{tpmSR_results}
     \begin{tabular}{llllll}
         \toprule
         test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
@@ -457,7 +457,7 @@ These tests verify correct functionality for the TLCL commands that are used by 
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on TLCL Library}\label{sfw_results}
+    \caption{CBMC tests on TLCL Library}\label{TLCL_results}
     \begin{tabular}{llllll}
         \toprule
         test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
