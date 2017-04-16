@@ -20,10 +20,6 @@ Most Unit Tests only test against a few inputs that are thought to be
 representative. 
 However, this means that there is always the possibility of bugs
 on the set of inputs that were not used in testing.
-Interface interaction is defined as errors that are a result of a number of
-functions interacting together in an undefined way.
-These erroneous interactions are not caught by Unit Testing because by
-definition only individual units are tested together. 
 
 Formal Verification can be seen as an enhancement to Unit Testing. 
 Formal Verification is the act of proving or disproving the correctness of a
@@ -86,12 +82,11 @@ describes the property that, ``If access is given, then the Password is true''.
 \end{equation}
 
 Propositional Logic is one standard for specifying properties because it is easily
-broken down into other formats which are easier to use for verification.
+broken down into other formats which can be verified automatically.
 For example, all Propositional Logic statements can be described completely
 through Boolean Logic and can then be evaluated using Boolean Satisfiability
-Solvers (SAT solvers)~\cite{validating-sat}. SAT Solvers are well-researched but
-they have known limitations with scaling and with with the types of systems that
-they can describe.
+Solvers (SAT solvers)~\cite{validating-sat}. 
+SAT Solvers are an important component of verification but they have known limitations with scaling.
 Additional systems have been used to extend the capabilities of SAT solvers, allowing them to describe more complicated properties and systems. 
 One system is known as Satisfiability Modulo Theories (SMT), which replaces
 Boolean logic elements (eg: AND, OR) with predicates such as inequalities (eg:
@@ -99,7 +94,7 @@ Less Than, Greater Than) or uninterpreted functions.
 
 SMT and SAT Solvers are two tools that perform Formal Verification. 
 Automated tools exist to transform software programs with assertions into SMT statements.
-This means that software can be easily verified by SMT solvers.
+This means that software can be easily verified with SMT solvers.
 One popular tool that will be used in this report is the C Bounded Model Checker (CBMC). 
 This tool automatically transforms software into SMT statements and verifies
 user assertions.
@@ -119,7 +114,7 @@ In the past, small SoCs have been created for the purpose of testing verificatio
 These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
 Formal verification has been seen to be successful in analyzing security
 protocols such as Secure Boot~\cite{elane}, Remote
-Attestation~\cite{trustfound}, and Loading Firmware~\cite{load-protocol}. 
+Attestation~\cite{trustfound}, and Firmware Loading~\cite{load-protocol}. 
 However, most research papers create their own SoCs from Open Source hardware
 and develop their own firmware for verification.
 While these papers are useful, they do not say much about the application of
@@ -139,15 +134,12 @@ The ILA toolchain provides a way to ``precisely capture updates to all firmware-
 accessible states spanning cores, accelerators, and peripherals''
 \cite{ila-template}.
 This technique claims to allow software and hardware to be verified simultaneously and at scale using formal methods.
-It is my hope that the extensive nature of the ILA hardware descriptions allow
-them to be used in other projects, while the effectiveness of the ILA abstraction
-in a large system displays its use in future papers. 
 
 This thesis will be applying formal verification techniques to Google Chrome's
 Verified Boot.
 Verified Boot is a large scale, security based program that spans the Hardware
 Software boundary. 
-It is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops.
+It is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops\cite{voot}.
 A bootloader is responsible for initializing the computer's hardware and
 loading the rest of the Operating System.
 A secure bootloader will only load an OS that passes specific
@@ -159,7 +151,7 @@ Verified Boot is a good candidate for this report because its execution relies
 on both Hardware and Software.
 The Verified Boot code is also hard-wired into the Chromebook laptops, meaning
 that any bugs must be found before laptop production starts.
-The importance of finding bugs makes Formal Verification more appealing.
+The importance of finding bugs makes Formal Verification guarantees more appealing.
 Additionally, Google has released both Verified Boot and Chrome OS as Open
 Source software, meaning verification can be run directly on industry code.
 
@@ -172,9 +164,10 @@ techniques can be extended to other large projects.
 
 This report also takes advantage of the Instruction Level Abstraction tool chain
 to show its effectiveness in a large scale system.
-In doing so, hardware models for common hardware such as a Trusted Computing
-Module, or a SHA hash are created.
-These models can also be re-used in other projects.
+In doing so, a hardware model is created for the Trusted Computing
+Module (TPM).
+The universal nature of the ILA toolchain means this hardware abstraction can be used in other projects.
+The use of the ILA toochain in this paper also displays its effectiveness in large projects.
 
 Finally, this report ends with security recommendations for Verified Boot, which
 would harden the boot system based on the results of the Formal Verification.
