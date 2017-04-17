@@ -246,11 +246,11 @@ assumed to be correct when the system is being analyzed.
 The Instruction Level Abstraction (ILA) toolchain was used to abstract the
 Hardware modules so they could be verified in conjuction with the Vboot software.
 Verifying Vboot without the hardware modules would lead to incorrect results. 
-Much of the software of Vboot is interacting with the Hardware by reading and
+Vboot's software interacts with hardware by reading and
 writing to memory-mapped registers that trigger hardware events.
-Without including the hardware modules, a software only model checker like CBMC
-will not understand that a write to a specific address corresponds to an entire
-Hardware operation like SHA hashing.
+Without including the hardware modules in the verification, a software only model 
+checker like CBMC will not understand that a write to a specific address corresponds to
+an entire hardware operation like SHA hashing.
 
 \begin{figure}
   \centering
@@ -289,8 +289,8 @@ Executing the function is the purpose of the Execute stage.
 The ILA synthesis is responsible for automatically mapping the Decode stage to
 the Execute stage, and it uses the C or Verilog program to perform this mapping
 such that the behavior of the hardware and the ILA model are identical.
-The ILA template that is created captures the interface of the Hardware.
-It produces an abstraction that is aware of how the Hardware reacts to Reads and
-Writes of specific Registers.
-This template can be connected back with the Software such that verification can
-happen across the Software-Hardware boundary.
+The ILA template that is created captures the interface of the hardware.
+It produces an abstraction that is aware of how the hardware reacts to reads and
+writes of specific registers.
+This template can be connected back with the software such that verification is
+aware of the Hardware-Software boundary.

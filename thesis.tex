@@ -61,6 +61,21 @@
 
 %\usepackage{amsfonts}
 \usepackage{booktabs}
+\usepackage{listings}
+\lstdefinestyle{mystyle}{
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=10pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+%    tabsize=2
+}
+\lstset{style=mystyle}
 
 %%% For figures
 \usepackage{graphicx}
@@ -229,6 +244,8 @@
 \include{sections/Verification}
 \include{sections/Recommendations}
 \include{sections/Conclusion}
+\appendix
+\include{sections/Appendix}
 
 
 % Make the bibliography single spaced

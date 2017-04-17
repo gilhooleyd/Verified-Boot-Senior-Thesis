@@ -1,55 +1,63 @@
-\documentclass[../report.tex]{subfiles}
-\def\code#1{\texttt{#1}}
-\begin{document}
-\onehalfspacing
-
-\section{Appendix}
+\chapter{Code Organization}
 
 The code for this report is based off of Google's Verified Boot reference repository\cite{vboot-codebase} and the modifications can be accessed in a cloned and edited repository\cite{my-repo}.
-Changes were restricted to the created folder \code{tests/cbmc} within the repository.
-In order to minimize changes to the existing codebase, if functions were edited elsewhere, these changes would only take effect if the C macro ``\code{CBMC}'' is defined. 
+Changes were to the Verified Boot repo were mostly restricted to the main Makefile and the unit test folder \code{tests/}.
 
-\subsection{Images} 
-\begin{figure}
+In order to have the results reproducible, all work was done inside of Vagrant Virtual Machine running Fedora 23. 
+To get a working environment, clone the repository, initialize the Vagrant box, and run the following command:
+\begin{equation}
+    \code{\$PATH/CBMC-Vboot/scripts/install-fedora.sh} 
+\end{equation}
+This script will install the 49 packages required to run all of the code. 
+Next, restart the Vagrant box and run the initialization script with:
+\begin{equation}
+    \code{\$PATH/CBMC-Vboot/scripts/init-fedora.sh} 
+\end{equation}
+This script will compile the 6 packages that need specific configurations.
+
+The installation process takes roughly an hour on my 2015 Macbook Pro and the resulting VM image requires 4 Gbs of Hard Drive space. 
+
+The \code{scripts/} folder contains the configuration scripts.
+The main scripts are for installation, but there are also scripts to manage the SW TPM library, and to build a Vboot Image with related Public/Private keys.
+
+The \code{qemu/} folder contains all of the code to run Vboot within QEMU with the hardware setup described in Section~\ref{qemu_em}.
+The \code{tpm-pcr.c} file tests the only the TPM PCR functionality.
+The \code{tpm-badcmds.c} file stress tests the TPM behavior with bad commands.
+The \code{vboot-full.c} goes through the full process of Chrome's Verified Boot.
+The \code{README.md} file contains information on building the software and using GDB testing.
+
+The \code{CBMC/} folder contains all of the code for running Formal Verification on Vboot.
+The python files with the naming structure \code{run\_\{\$FILE\}.py} will build and run the CBMC command for \code{\$FILE}.
+The C files with the naming structure \code{test\_\{\$FILE\}.c} contain the main code being tested by CBMC\@.
+The \code{README.md} file contains information on repeating the tests outlined in this report.
+
+
+\section{CBMC Command Builder}
+The code below shows the python script that builds a CBMC command for Formal Verification.
+\lstinputlisting[language=Python]{code/cbmc.py}
+
+\section{TPM Firmware}
+This code shows the TPM read and write functionality.
+\lstinputlisting[language=C]{code/tpm.c}
+
+\section{TPM ILA}
+This code shows the ILA for the TPM Hardware
+\lstinputlisting[language=Python]{code/TPM_ILA.py}
+
+\chapter{Images and Charts} 
+
+\section{Images}
+
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{fmap_locs.png}
   \caption{The Flash Map for Chrome OS's SPI Flash. The gray sections have been marked as Read Only~\cite{fw-summit}}
   \label{fig:fmap}
 \end{figure}
 
-\subsection{CBMC Commands}
-
-Python scripts have been created to generate the CBMC command for different C files.
-These scripts are based off of a simple base script with the following editable arrays.
-
-\begin{itemize}
-    \item \code{includedDirs}  --- list of all directories with related C header files 
-    \item \code{includedFiles} --- list of all C file with necessary functions
-    \item \code{extras} --- list of CMBC specific commands including array bounds checking, C Macro definitions, and loop unwinding limits 
-\end{itemize}
-
-\subsection{CBMC Output}
-
-The most helpful function of CBMC is its ability to provide a trace of variables that provides a counterexample to a given assertion. 
-However, the size of the codebase and the number of possible set variables makes it difficult to manually examine the counterexample to see what exactly is causing the assertion to be proved incorrect.
-For this reason I have created the \code{parse\_output.py} file which takes in CBMC output and displays the non-deterministic variables in a formatted manner. 
-The most helpful aspect of this program is that it is able to parse the binary flags and reveal in human readable format what is enabled or disabled.
-
-% \subsection{Full Runthrough}
-
-% \subsection{Vagrant}
-
-
-% \begin{table*}\centering
-%     \caption{Configurable Arrays within CBMC command framework}\label{sfw_results}
-%     \begin{tabular}{p{0.3\linewidth}p{0.6\linewidth}}\toprule
-%     \arraystretch{2}
-%         Array Name & Description \\ \bottomrule 
-%         includedDirs  & list of all directories with related C header files \\ 
-%         includedFiles & list of all C file with necessary functions \\
-%         extras & list of CMBC specific commands including array bounds checking, C Macro definitions, and loop unwinding limits \\ 
-%         \bottomrule
-%     \end{tabular}
-% \end{table*}
-
-\end{document}
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=1\linewidth]{full_flow.png}
+  \caption{The full function call graph for Verified Boot}
+  \label{fig:full_flow}
+\end{figure}
