@@ -1,0 +1,13 @@
+Formal Verification is an important tool for deeply analyzing security 
+programs.
+Formal Verification tools for software such as model checking are able to formally prove user specified assertions.
+These proofs are created by exhaustively searching all corner cases, giving Formal Verification an edge over the traditional but less intensive Unit Testing framework. 
+The benefits of Formal Verification are most seen in security programs where a bug or leak can have major real-world impacts.
+Security programs are increasingly using hardware accelerators for faster computation, or hardware storage for tamper-proof guarantees.
+The interactions between hardware and software are not captured in traditional model checkers, leading to possible errors in the verification. 
+To showcase upcoming tools for verification across the hardware-software boundary, Formal Verification will be applied to the large, real world system of Google's Verified Boot. 
+Verified Boot is an implementation of a secure bootloader with security guarantees across the hardware-software boundary. 
+In order to use this system, it will need to be modified to run on Open-Source Hardware. 
+In order to perform the verification, models for the hardware need to be created.
+This hardware includes the Trusted Platform Module and a SHA accelerator.
+These models will be created with the Instruction Level Abstraction toolchain. 
