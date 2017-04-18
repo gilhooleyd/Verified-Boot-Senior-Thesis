@@ -1,8 +1,8 @@
 \chapter{Conclusion}
 
-Throughout this paper, we investigated the importance and feasibility of formally verifying a large scale system.
-Google's Verified Boot program was shown to be a good candidate for formal verification because of its security guarantees and its interactions across the hardware firmware boundary.
-Verified Boot's properties were expressed formally using CTL and many were verified against the C implementation using the model checker CMBC\@. 
+This paper investigated the feasibility of formally verifying a large scale system.
+Google's Verified Boot program was shown to be a good candidate for formal verification because of its security guarantees and its interactions across the Hardware-Software boundary.
+VBoot's security claims were expressed formally using CTL and were verified against the C implementation using the model checker CMBC\@. 
 Model checking abstractions were discussed, such as abstracted functions, memory
 allocation, and non-deterministic array writes.
 These abstractions were necessary for Formal Verification tools to produce
@@ -15,11 +15,11 @@ testing assertions which is already in place throughout Verified Boot.
 The analysis on Verified Boot is helpful in the way that it can be applied to
 other systems. 
 Verified Boot was chosen because it is a widely used code base
-that crosses the Hardware Firmware boundary. 
-Now that it has been shown that analysis can work on real systems, academic
-work can be done on systems with more interesting behavior.
-Verified Boot uses Hardware, but there are very little opportunities for
-problems involving Hardware concurrency.
+that crosses the Hardware-Software boundary. 
+However other systems exhibit more interesting behavior from a verification standpoint.
+
+Verified Boot uses hardware, but there are very little opportunities for
+problems involving hardware concurrency.
 Other systems include interweaving uses of non-blocking
 Hardware\cite{load-protocol} and these systems would showcase more strengths of the ILA functionality. 
 
@@ -38,11 +38,9 @@ itself\cite{TPM-state}\cite{TPM-spec-verif}.
 Additionally, there are more areas in Google's Verified Boot that
 deserve more attention. 
 The Read-Write section of Verified Boot is ignored because it shares the
-majority of its code with the Read-Only section, but it also contains a few
-possibilities for attacks.
-The Update functionality of Verified Boot should also be worth mentioning,
-although this report already assumes that an attacker can upload arbitrary
-updates.
+majority of its code with the Read-Only section, but it is still worth verifying. 
+The Update functionality of Verified Boot is also be worth investigating.
+Problems in the Update functionality will not affect the properties outlined in this report.
+This report already assumes that an attacker can upload arbitrary updates.
 
-In the future it is possible to extend the techniques in this paper to the rest of
-Verified Boot or other exciting academic projects.
+Each of these suggestions are further areas of research that can be taken into Verified Boot or the field of Formal Verification.

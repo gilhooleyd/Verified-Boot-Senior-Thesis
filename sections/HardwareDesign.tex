@@ -1,6 +1,6 @@
 \chapter{Hardware Design}
 
-This section describes the Hardware design of Google's Verified Boot. 
+This section describes the Hardware design of Google's Verified Boot (Vboot). 
 
 Verified boot main job is to check that the image being loaded originated from
 Google and has not been modified. 
@@ -12,9 +12,9 @@ The hardware modules used by Verified Boot can be broken into two groups: secure
 For secure storage there is an Flash memory module that provides 
 Read-Only non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
 For hardware accelerators there is the cryptographic accelerator that
-implements the Secure Hash Algorithm (SHA) 
+implements the Secure Hash Algorithm (SHA).
 
-While the code for Vboot is Open Sourced and available online, the laptop's
+While the code for Vboot is open sourced and therefore available online, the laptop's
 hardware does not have source code available.
 However, Google has released documents describing specifications for the
 Hardware modules required. 
@@ -58,6 +58,7 @@ For the purpose of this report, the TPM is used as a module that can securely st
 The physical hardware of a TPM can be created by any company, but it must conform to the standards released by the Trusted Computing Group (TCG) \cite{TCG}.
 The TCG has released two specifications of TPMs and they are known as TPMs version 1.2 and 2.0.
 For the scope of this project we will be looking at the TPM 1.2 specifications \cite{TPM-design}\cite{TPM-struct}\cite{TPM-cmd}.
+
 The TPM specification outlines the commands, structures, and interface for the system.
 The TPM commands describe the full functionality of the system by describing each command the main CPU can request.
 The TPM structures describe what data structures can be passed back and forth from the CPU to the TPM, as well as what information the TPM can hold within.
@@ -178,12 +179,20 @@ operation.
 
 \section{RSA}
 
+Many computer systems include RSA hardware accelerators, however Vboot does not
+require one. 
+The Vboot library implements all RSA algorithms in software.
+These software algorithms will be used and verified instead of a hardware
+module.
+It is possible to add RSA hardware support to Chromebooks relatively 
+easily, and this may help speed up boot times dramatically.
+
 RSA is a cryptographic platform that allows messages to be encrypted and
 decrypted through the use of public and private keys.
 The properties of RSA are used to send messages where the message 
 receiver can be sure of the identity of the message's sender. 
-For example, Google encrypts the Firmware Image with a private key known only to Google.
-In order to recover the Firmware Image, the Chromebook must decrypt the data with Google's public key, which is publicly available. 
+For example, Google encrypts the Image to be attested with a private key known only to Google.
+In order to recover the Image, the Chromebook must decrypt the data with Google's public key, which is publicly available. 
 The RSA algorithm asserts that only Google has access to the private 
 key, and that only Google's public key can decrypt the data.
 This assertions provide a reasonable guarantee that the data arrived from Google.
@@ -198,22 +207,8 @@ The encrypted hash value of a data structure is known as a ``Signature''.
 Encrypting with an RSA private key is known as ``signing'' data.
 Decrypting with an RSA public key is known as ``unsigning'' data.
 
-Many computer systems include RSA hardware accelerators, however Vboot does not
-require one. 
-The Vboot library implements all RSA algorithms in software.
-These software algorithms will be used and verified instead of a hardware
-module.
-It is possible to add RSA hardware support to Chromebooks relatively 
-easily, and this may help speed up boot times dramatically.
-
 \section{QEMU Emulation}\label{qemu_em}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.4\linewidth]{qemu_layout.png}
-  \caption[QEMU Software Library Layout]{The QEMU layout. We can see here how the CPU and other hardware modules write RAM, and how some QEMU modules are interfaces to external software libraries.}
-  \label{fig:qemu_layout}
-\end{figure}
 
 QEMU~\cite{qemu-site} is an open source emulator that is used in the report to
 emulate the SoC running Vboot.
@@ -228,6 +223,13 @@ Princeton'' by me and Lance Goodridge.
 The project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
 The project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
 These tools facilitated the creation of a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{qemu_layout.png}
+  \caption[QEMU Software Library Layout]{The QEMU layout. We can see here how the CPU and other hardware modules write RAM, and how some QEMU modules are interfaces to external software libraries.}
+  \label{fig:qemu_layout}
+\end{figure}
 
 The QEMU emulator was modified to add a TPM and a SHA module. 
 However, it does not include the Flash Memory.
@@ -244,7 +246,7 @@ assumed to be correct when the system is being analyzed.
 \section{Instruction Level Abstraction (ILA)}
 
 The Instruction Level Abstraction (ILA) toolchain was used to abstract the
-Hardware modules so they could be verified in conjuction with the Vboot software.
+hardware modules so they could be verified in conjuction with the Vboot software.
 Verifying Vboot without the hardware modules would lead to incorrect results. 
 Vboot's software interacts with hardware by reading and
 writing to memory-mapped registers that trigger hardware events.
@@ -252,13 +254,6 @@ Without including the hardware modules in the verification, a software only mode
 checker like CBMC will not understand that a write to a specific address corresponds to
 an entire hardware operation like SHA hashing.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.6\linewidth]{ILA_flow.png}
-  \caption[ILA Verification Flowchart]{A flowchart of how ILA is used in the Verification process.
-  In this report, ILA is used to combine the hardware model with the C program for CBMC verification.}
-  \label{fig:ILA_flow}
-\end{figure}
 
 ILA provides a way to ``precisely capture updates to all firmware-accessible
 states spanning cores, accelerators, and peripherals''\cite{ila-template}.
@@ -285,6 +280,14 @@ values in the Decode stage.
 For example, the TPM ordinal determines if the TPM will execute a hashing
 function or a locking function.
 Executing the function is the purpose of the Execute stage.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{ILA_flow.png}
+  \caption[ILA Verification Flowchart]{A flowchart of how ILA is used in the Verification process.
+  In this report, ILA is used to combine the hardware model with the C program for CBMC verification.}
+  \label{fig:ILA_flow}
+\end{figure}
 
 The ILA synthesis is responsible for automatically mapping the Decode stage to
 the Execute stage, and it uses the C or Verilog program to perform this mapping

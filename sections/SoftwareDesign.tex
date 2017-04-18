@@ -280,9 +280,8 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 \begin{figure}
   \centering
   \includegraphics[width=0.45\linewidth]{qemu_repos}
-  \caption[This report's Repository Layout]{This report's boot flow uses QEMU's default bootloader Firmware, then
-  a created C wrapper for the TPM and Debugging Output, and Vboot for the
-  verification}\label{fig:qemu_repos}
+  \caption[This report's Repository Layout]{This report's boot flow uses a
+      created C wrapper for interfacing with QEMU and the TPM, and an unmodified Vboot for the verification}\label{fig:qemu_repos}
 \end{figure}
 
 \subsection{Coreboot and Depthcharge}\label{coreboot}
@@ -310,31 +309,38 @@ repo.
 The vboot\_reference repo contains all of the control and algorithms for the vboot process~\cite{vboot-codebase}.
 The repo is designed such that it does not rely on any knowledge about the platform.
 If a function requires usage of a driver or something that is board specific, it will make a callback into Depthcharge which will provide the relevant information.
+Again, for this report, Depthcharge will be replaced by the CBMC-Vboot
+repository.
 
 One of the more helpful features of the vboot\_reference repo is that it can be
 built in a stand-alone fashion as a C archive file.
 More information about building the project can be found in the appendix, but
 this feature allowed the Vboot functions to be placed into the QEMU environment
-easily, and it can be adapted for many different types of hardware.
+easily and be adapted for many different types of hardware.
 
 \subsection{Software TPM}
-
-This project uses a software-emulated TPM instead of a physical chip. 
-This emulated TPM implements all of the TPM's functionality as defined by the
-TCG Standards.
-The fact that the emulation was software allowed the TPM to be put into various
-states easily without requiring a physical reboot of the system.
-Once the emulated TPM was passed to QEMU, it was accessed through the same
-Memory Mapped Registers as the Hardware TPM outlined in Section~\ref{sec:TPM}.
-This was very helpful because it meant that the Vboot TPM functions would work
-with the emulated TPM.
 
 The Software TPM was taken from a series of repositories created by IBM's
 Stefan Berger. 
 These repositories emulated the TPM functions\cite{TPMLibs}, the TPM Command
 Fifo\cite{SWTPM}, and the TPM Register Interface\cite{TPMQEMU}. 
-More information about installing the Software TPM libraries can be found in the
 appendix.
+
+This emulated TPM implements all of the TPM's functionality as defined by the
+TCG Standards.
+Software emulation was desirable over a physical chip for many reasons.
+First, for security reasons, the state of a hardware TPM is difficult to modify.
+If testing required forcing the TPM into a particular state, it may involve
+manual power restarts and multiple calls to the TPM library.
+The Software TPM allows state to be saved, restored, and modified on the fly
+without going through the TPM API.
+Second, a Hardware TPM's operations would be a black box.
+The Software TPM's code is open source and can be inspected manually.
+
+When the Software TPM is passed to QEMU, it is accessed through the 
+Registers outlined in Section~\ref{sec:TPM}.
+This is the same way that the Vboot TPM library accesses the TPM, so these
+functions can be used unmodified. 
 
 \subsection{CBMC-Vboot}
 
@@ -342,6 +348,4 @@ The CBMC-Vboot is a repository created to connect Vboot to the emulated
 hardware used in this report\cite{my-repo}.
 The layout of this repository is discussed in the Appendix.
 We can see in Figure~\ref{fig:qemu_repos} that it is used as a wrapper to tie
-Vboot together with QEMU and the SWTPM libraries.
-It also holds python scripts which run the CBMC tests that will be described in
-Section~\ref{sec:Verif}.
+Vboot together with QEMU and the Software TPM libraries.
