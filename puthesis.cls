@@ -12,6 +12,7 @@
 \def\copyrightyear#1{\gdef\@copyrightyear{#1}}
 \def\@copyrightyear{\number\year}
 \def\adviser#1{\gdef\@adviser{#1}}
+\def\secondReader#1{\gdef\@secondReader{#1}}
 \long\def\@abstract{\@latex@error{No \noexpand\abstract given}\@ehc}
 \newcommand*{\frontmatter}{
   \pagenumbering{roman}
@@ -62,47 +63,44 @@
 \def\dedication#1{\gdef\@dedication{#1}}
 \newcommand{\maketitlepage}{{
   \thispagestyle{empty}
-  \sc
+  \onehalfspacing
   \vspace*{0in}
   \begin{center}
-    \LARGE \@title
+    \LARGE \textbf{\@title}
   \end{center}
   \vspace{.6in}
   \extravspace{.6in}
   \begin{center}
-    \@author
+    \large
+    \@author \\
+    Adviser: \@adviser \\
+    Second Reader: \@secondReader \\
   \end{center}
-  \vspace{.6in}
-  \extravspace{.6in}
+  \vspace{3.5in}
   \begin{center}
-    A Dissertation \\
-    Presented to the Faculty \\
-    of Princeton University \\
-    in Candidacy for the Degree \\
-    of Doctor of Philosophy
+   \large
+   May 8, 2017
   \end{center}
-  \vspace{.3in}
-  \extravspace{.3in}
   \begin{center}
-    Recommended for Acceptance \\
-    by the \@deptpref \\
-    \@dept \\
-    Adviser: \@adviser
-  \end{center}
-  \vspace{.3in}
-  \extravspace{.3in}
-  \begin{center}
-    \@submitted
+  \large
+  Submitted in partial fulfillment \\
+  of the requirements for the degree of \\
+  Bachelor of Science in Engineering \\
+  Department of Electrical Engineering \\
+  Princeton University
   \end{center}
   \clearpage
   }}
 \newcommand*{\makecopyrightpage}{
   \thispagestyle{empty}
   \vspace*{0in}
-  \begin{center}
-    \copyright\ Copyright by \@author, \@copyrightyear. \\
-    All rights reserved.
-  \end{center}
+    I hereby declare that this Independent Work report represents my own work in
+    accordance with University regulations. 
+
+  \vspace{0.5in}
+    \begin{flushright}
+    David J. Gilhooley
+        \end{flushright}
   \clearpage}
 \newcommand*{\makeabstract}{
   \newpage

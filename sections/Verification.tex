@@ -349,19 +349,29 @@ Below is an itemized list of what each test is verifying.
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on LoadFirmware function}\label{ldfw_results}
+    \caption{Verifying LoadFirmware function}\label{ldfw_results}
     \begin{tabular}{llllll}
         \toprule
-        test name & steps & VCCs  & time (s) & sat/unsat  \\ \bottomrule
-        Google Assertions & 6460 & 34 & 67.02 & unsat \\
-        rollback     & 4125 & 1 & 4.79 & unsat \\
-        rollback/rec & 4123 & 1 & 4.68 & sat \\
-        Hash Failure & 4182 & 2 & 4.45 & unsat \\
-        RSA  Failure & 4180 & 2 & 4.45 & unsat \\
-        Array Accesses & 4130 & 22 & 4.51 & unsat \\\bottomrule
+        test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
+        rollback     & 4125 & 1 & 4.27 & 259 & unsat \\
+        rollback/rec & 4123 & 1 & 4.68 & 394 & sat \\
+        Hash Failure & 4182 & 2 & 4.45 & 258 & unsat \\
+        RSA  Failure & 4180 & 2 & 4.45 & 258 & unsat \\
+        Array Accesses & 4130 & 57 & 126 & 2487 & unsat \\\bottomrule
     \end{tabular}
 \end{table}
 
+\begin{table}[!htbp]
+    \centering
+    \caption{Verifying LoadFirmware function (with memory addressing)}\label{ldfw_results}
+    \begin{tabular}{llllll}
+        \toprule
+        test name & steps & VCCs  & time (s) & memory (Mb) &)sat/unsat  \\ \bottomrule
+        Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
+        Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\
+    \end{tabular}
+\end{table}
 We can see from these tests that CBMC is working successfully and in a reasonable time.
 The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
 These results also show that Formal Verification tools are a possibility for checking the assertions that already exist in Google's testing framework.
@@ -390,10 +400,10 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
     \caption{CBMC tests on VbSelectFirmware function}\label{sfw_results}
     \begin{tabular}{llllll}
         \toprule
-        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
-        TPM locking & 5269 & 6 & 0.07 & unsat \\
-        LoadFirmware & 5264 & 2 &  0.07 & unsat \\
-        Array Accesses & 5257 & 0 & 0 &  unsat \\\bottomrule
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        TPM locking & 5269 & 6 & 2.42 & 164 & unsat \\
+        LoadFirmware & 5264 & 2 & 2.64 & 164 & unsat \\
+        Array Accesses & 5257 & 10 & 2.67 & 165 &  unsat \\\bottomrule
     \end{tabular}
 \end{table}
 
