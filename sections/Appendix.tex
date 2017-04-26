@@ -61,3 +61,34 @@ This code shows the ILA for the TPM Hardware
   \caption{The full function call graph for Verified Boot}
   \label{fig:full_flow}
 \end{figure}
+
+\clearpage
+\pagebreak
+
+\begin{table}[!htbp]
+    \centering
+    \caption{All CBMC Tests}\label{all_results}
+    \begin{tabular}{lrrrrr}
+        \toprule
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
+        rollback     & 4125 & 1 & 4 & 259 & unsat \\
+        rollback/rec & 4123 & 1 & 6 & 394 & sat \\
+        Hash Failure & 4182 & 2 & 5 & 258 & unsat \\
+        RSA  Failure & 4180 & 2 & 5 & 258 & unsat \\
+        Array Accesses & 4130 & 57 & 126 & 2487 & unsat \\\midrule
+        Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
+        Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\midrule
+        TPM locking & 5269 & 6 & 2 & 164 & unsat \\
+        LoadFirmware & 5264 & 2 & 3 & 164 & unsat \\
+        Array Accesses & 5257 & 10 & 3 & 165 &  unsat \\\midrule
+        TPM Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
+        TPM Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        TPM Data Receive &  &  & & \\ \midrule
+        TLCL Error Handling & & & & \\
+        SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
+        RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
+        RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
+        SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \midrule
+    \end{tabular}
+\end{table}

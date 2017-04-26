@@ -27,14 +27,14 @@ Table~\ref{ctl_syn} describes the CTL syntax.
     \centering
     \caption{A description of the CTL syntax}\label{ctl_syn}
     \begin{tabular}{ll}
-        \toprule Syntax & Description  \\ \bottomrule 
+        \toprule Syntax & Description  \\ \midrule 
         $Xp$ & $p$ is true in the next state\\ 
         $Fp$ & $p$ is true eventually\\ 
         $Gp$ & $p$ is always true\\ \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Memory Access Locations}
+\subsection{Memory Access Locations}\label{my-malloc}
 
 Memory accesses in C are very important because C allows for arbitrary addresses to be accessed. 
 Addressing arrays before their starting address or after their final address is known as a buffer overrun and it is one of the most common security vulnerabilities. 
@@ -322,6 +322,9 @@ This solver outputs unSAT if the assertions hold and SAT if they do not.
 The ``steps'' column is the number of C lines that were stepped through to reach the proof conclusion.
 The ``VCC'' column is the number of user assertions that were being verified.
 
+All results were gathered on Princeton's SAT8 server cluster. 
+The SAT8 cluster contains an Intel Xeon E5645 CPU and has 128 Gigabytes of RAM.
+
 \section{LoadFirmware}
 
 \begin{figure}[!htbp]
@@ -350,9 +353,9 @@ Below is an itemized list of what each test is verifying.
 \begin{table}[!htbp]
     \centering
     \caption{Verifying LoadFirmware function}\label{ldfw_results}
-    \begin{tabular}{llllll}
+    \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \midrule
         Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
         rollback     & 4125 & 1 & 4.27 & 259 & unsat \\
         rollback/rec & 4123 & 1 & 4.68 & 394 & sat \\
@@ -364,17 +367,29 @@ Below is an itemized list of what each test is verifying.
 
 \begin{table}[!htbp]
     \centering
-    \caption{Verifying LoadFirmware function (with memory addressing)}\label{ldfw_results}
-    \begin{tabular}{llllll}
+    \caption{Verifying LoadFirmware function (with memory addressing)}\label{ldfw_results_malloc}
+    \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs  & time (s) & memory (Mb) &)sat/unsat  \\ \bottomrule
+        test name & steps & VCCs  & time (s) & memory (Mb) &)sat/unsat  \\ \midrule
         Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
-        Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\
+        Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\bottomrule
     \end{tabular}
 \end{table}
-We can see from these tests that CBMC is working successfully and in a reasonable time.
+
+We can see from these tests that CBMC is working as expected.
 The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
-These results also show that Formal Verification tools are a possibility for checking the assertions that already exist in Google's testing framework.
+All of the assertions were checked in a very short time without the memory allocating technique outlined in Section~\ref{my-malloc}. 
+However, CBMC was able to find counterexamples to the Google Assertions because array addressing was not working correctly.
+The counterexamples used preamble and keyblock addresses outside of the bounds of the original Image.
+This was not caught by the assertions because the array addressing was not working correctly.
+
+Table~\ref{ldfw_results_malloc} shows the same tests with the memory allocating technique implemented.
+We can see that CBMC takes much longer to proof the assertions, but the Google Assertions are working correctly.
+
+Without the memory allocation technique, it would be reasonable to assume that a generic personal computer could run Formal Verification with CBMC. 
+The first tests finished in under two minutes and the most memory used was a little over two Gigabytes of RAM.
+However, with CBMC, the tests take up to an hour and use up to sixty Gigabytes of memory.
+It is extremely unlikely that a personal computer would have sixty Gigabytes of RAM, meaning that CBMC can only be run on a large server for this type of verification. 
 
 \section{VbSelectFirmware}
 
@@ -398,9 +413,9 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
 \begin{table}[!htbp]
     \centering
     \caption{CBMC tests on VbSelectFirmware function}\label{sfw_results}
-    \begin{tabular}{llllll}
+    \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
         TPM locking & 5269 & 6 & 2.42 & 164 & unsat \\
         LoadFirmware & 5264 & 2 & 2.64 & 164 & unsat \\
         Array Accesses & 5257 & 10 & 2.67 & 165 &  unsat \\\bottomrule
@@ -437,14 +452,16 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
 \begin{table}[!htbp]
     \centering
     \caption{CBMC tests on VbExTpmSendReceive function}\label{tpmSR_results}
-    \begin{tabular}{llllll}
+    \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
-        TPM Liveness & & & & \\
-        TPM Error Handling &  &  & & \\
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
+        TPM Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
+        TPM Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
         TPM Data Receive &  &  & & \\\bottomrule
     \end{tabular}
 \end{table}
+
+% TODO: Talk about how Liveness was actually calculated
 
 \section{TPM TLCL functions}
 
@@ -454,28 +471,30 @@ These tests verify correct functionality for the TLCL commands that are used by 
 
 \begin{itemize}
    \item TLCL Error Handling --  all functions return success only if the TPM command completes successfully
-   \item NV Write success -- the TPM receives the same value passed to the function
-   \item NV Read success --  the function receives the same value saved in the TPM
-   \item Locking success --  the function returns success only if the TPM locks
-   \item PCR Extend success --  the function returns success only if the PCR value updates with the new hash value
-   \item PCR Extend success --  the function receives the same value stored in the TPM PCR
+    \item SetupTPM -- the TPM is initialized successfully with well-defined states
+    \item RollbackFirmwareWrite -- the TPM receives the write value unmodified and no TPM assertions are broken
+    \item RollbackFirmwareWrite -- the TPM will always lock the correct section and no TPM assertions are broken
+    \item SetTPMBootModeState -- the TPM receives the PCR value unmodified and no TPM assertions are broken
 
 \end{itemize}
 
 \begin{table}[!htbp]
     \centering
     \caption{CBMC tests on TLCL Library}\label{TLCL_results}
-    \begin{tabular}{llllll}
+    \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & sat/unsat  \\ \bottomrule
-        TLCL Error Handling& & & & \\
-        NV Write success&  &  & & \\
-        NV Read success&  &  & & \\
-        Locking success&  &  & & \\
-        PCR Extend success&  &  & & \\
-        PCR Read success&  &  & & \\\bottomrule
+        test name & steps & VCCs & time (s) & sat/unsat  \\ \midrule
+        TLCL Error Handling & & & & \\
+        SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
+        RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
+        RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
+        SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \bottomrule
     \end{tabular}
 \end{table}
+
+We can see again that CBMC is working correctly.
+These tests also include the TPM assertions outlined in the previous section.
+These TPM assertions are now verified across multiple TLCL commands.
 
 % \subsection{ILA for Hardware}   
 % 
