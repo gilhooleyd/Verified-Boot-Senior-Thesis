@@ -71,6 +71,10 @@ This code shows the ILA for the TPM Hardware
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        \textbf{SelectFirmware}  &  & & & & \\
+        TPM locking & 5269 & 6 & 2 & 164 & unsat \\
+        LoadFirmware & 5264 & 2 & 3 & 164 & unsat \\
+        Array Accesses & 5257 & 10 & 3 & 165 &  unsat \\\midrule
         \textbf{LoadFirmware}  &  & & & & \\
         Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
         Rollback     & 4125 & 1 & 4 & 259 & unsat \\
@@ -81,19 +85,15 @@ This code shows the ILA for the TPM Hardware
         \textbf{LoadFirmware (malloc)}  &  & & & & \\
         Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
         Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\midrule
-        \textbf{SelectFirmware}  &  & & & & \\
-        TPM locking & 5269 & 6 & 2 & 164 & unsat \\
-        LoadFirmware & 5264 & 2 & 3 & 164 & unsat \\
-        Array Accesses & 5257 & 10 & 3 & 165 &  unsat \\\midrule
-        \textbf{TPM}  &  & & & & \\
-        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
-        Data Receive &  &  & & \\ \midrule
         \textbf{TLCL}  &  & & & & \\
         Error Handling & & & & \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
         SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \midrule
+        \textbf{TPM}  &  & & & & \\
+        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
+        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        Data Receive &  &  & & \\ \midrule
     \end{tabular}
 \end{table}

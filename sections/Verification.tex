@@ -325,6 +325,37 @@ The ``VCC'' column is the number of user assertions that were being verified.
 All results were gathered on Princeton's SAT8 server cluster. 
 The SAT8 cluster contains an Intel Xeon E5645 CPU and has 128 Gigabytes of RAM.
 
+\section{VbSelectFirmware}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.5\linewidth]{vb_sel_fw.png}
+  \caption[VbSelectFirmware Call Graph]{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
+\end{figure}
+
+The VbSelectFirmware function is the wrapper around LoadFirmware.
+It is responsible for loading flags in from secure storage and for accessing the TPM\@.
+VbSelectFirmware is also responsible for locking the TPM's firmware version before control passes to the firmware image and updating the version if a newer image has been loaded.
+This function's final responsibility is to load TPM's PCR0 with the hash of the boot flags.
+
+\begin{itemize}
+ \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
+ \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
+ \item  Array accesses -- check for all possibilities of array bounds errors.
+\end{itemize}
+
+\begin{table}[!htbp]
+    \centering
+    \caption{CBMC tests on VbSelectFirmware function}\label{sfw_results}
+    \begin{tabular}{lrrrrr}
+        \toprule
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
+        TPM locking & 5269 & 6 & 2.42 & 164 & unsat \\
+        LoadFirmware & 5264 & 2 & 2.64 & 164 & unsat \\
+        Array Accesses & 5257 & 10 & 2.67 & 165 &  unsat \\\bottomrule
+    \end{tabular}
+\end{table}
+
 \section{LoadFirmware}
 
 \begin{figure}[!htbp]
@@ -391,36 +422,38 @@ The first tests finished in under two minutes and the most memory used was a lit
 However, with CBMC, the tests take up to an hour and use up to sixty Gigabytes of memory.
 It is extremely unlikely that a personal computer would have sixty Gigabytes of RAM, meaning that CBMC can only be run on a large server for this type of verification. 
 
-\section{VbSelectFirmware}
+\section{TPM TLCL functions}
 
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=0.5\linewidth]{vb_sel_fw.png}
-  \caption[VbSelectFirmware Call Graph]{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
-\end{figure}
-
-The VbSelectFirmware function is the wrapper around LoadFirmware.
-It is responsible for loading flags in from secure storage and for accessing the TPM\@.
-VbSelectFirmware is also responsible for locking the TPM's firmware version before control passes to the firmware image and updating the version if a newer image has been loaded.
-This function's final responsibility is to load TPM's PCR0 with the hash of the boot flags.
+The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
+Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
+These tests verify correct functionality for the TLCL commands that are used by Vboot. 
 
 \begin{itemize}
- \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
- \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
- \item  Array accesses -- check for all possibilities of array bounds errors.
+   \item Error Handling --  the TPM returns success only if the TPM command completes successfully
+    \item SetupTPM -- the TPM is initialized successfully with well-defined states
+    \item  RollbackFirmwareWrite -- the RollbackFirmwareWrite function sends the write value to the TPM unmodified and no TPM assertions are broken
+    \item  RollbackFirmwareLock -- the RollbackFirmwareLock function will always lock the correct section and no TPM assertions are broken
+    \item SetTPMBootModeState -- the SetTPMBootModeState function sends the PCR value to the TPM unmodified and no TPM assertions are broken
+
 \end{itemize}
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on VbSelectFirmware function}\label{sfw_results}
+    \caption{CBMC tests on TLCL Library}\label{TLCL_results}
     \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
-        TPM locking & 5269 & 6 & 2.42 & 164 & unsat \\
-        LoadFirmware & 5264 & 2 & 2.64 & 164 & unsat \\
-        Array Accesses & 5257 & 10 & 2.67 & 165 &  unsat \\\bottomrule
+        test name & steps & VCCs & time (s) & sat/unsat  \\ \midrule
+        Error Handling & & & & \\
+        SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
+        RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
+        RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
+        SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \bottomrule
     \end{tabular}
 \end{table}
+
+We can see again that CBMC is working correctly.
+These tests also include the TPM assertions outlined in the previous section.
+These TPM assertions are now verified across multiple TLCL commands.
 
 \section{TPM Send and Receive}
 
@@ -463,67 +496,3 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
 
 % TODO: Talk about how Liveness was actually calculated
 
-\section{TPM TLCL functions}
-
-The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
-Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
-These tests verify correct functionality for the TLCL commands that are used by Vboot. 
-
-\begin{itemize}
-   \item Error Handling --  the TPM returns success only if the TPM command completes successfully
-    \item SetupTPM -- the TPM is initialized successfully with well-defined states
-    \item  RollbackFirmwareWrite -- the RollbackFirmwareWrite function sends the write value to the TPM unmodified and no TPM assertions are broken
-    \item  RollbackFirmwareLock -- the RollbackFirmwareLock function will always lock the correct section and no TPM assertions are broken
-    \item SetTPMBootModeState -- the SetTPMBootModeState function sends the PCR value to the TPM unmodified and no TPM assertions are broken
-
-\end{itemize}
-
-\begin{table}[!htbp]
-    \centering
-    \caption{CBMC tests on TLCL Library}\label{TLCL_results}
-    \begin{tabular}{lrrrrr}
-        \toprule
-        test name & steps & VCCs & time (s) & sat/unsat  \\ \midrule
-        Error Handling & & & & \\
-        SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
-        RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
-        RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
-        SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \bottomrule
-    \end{tabular}
-\end{table}
-
-We can see again that CBMC is working correctly.
-These tests also include the TPM assertions outlined in the previous section.
-These TPM assertions are now verified across multiple TLCL commands.
-
-% \subsection{ILA for Hardware}   
-% 
-% \subsection{TPM Properties}   
-% 
-% Some properties are possible to prove using Hardware and Firmware separately.
-% The first run is showing that each TPM function will only return true if it receives the ``success'' back from the TPM\@.
-% Once we have this property we can also prove that the TPM will only return the ``success'' value if its operations are completed successfully. 
-% Combining these two properties can give us an idea of correctness for the system.
-% 
-% However, there are some properties that are much easier to prove with the 
-% Hardware and Firmware together.
-% In the third run we have the property that the firmware will always read every available byte from the TPM command fifo.
-% This property is important to show the Firmware is correct and it relies on interactions between Hardware and Firmware.
-% The fourth run checks that each function will always return. 
-% This is important for liveness, because if the Firmware is stuck polling a register forever then the system will not boot.
-% 
-% %TODO: Get TPM CBMC table up and running here
-% 
-% \subsection{Verifying TPM with ILA}   
-% 
-% In order to check the TPM, the Vboot firmware had to use the TPM registers and
-% command flow described in Section~\ref{tpm_cmd_regs}.
-% This was accomplished by creating an abstraction of the TPM using the ILA framework.
-% This abstraction described the TPM registers and command functionality in a way that could be verified by CMBC\@.
-% The TPM abstraction contains only the subset of the TPM functionality required by Vboot, which was outlined in Section~\ref{sec:TPM}.
-% 
-% The TPM ILA code can be seen in the appendix.
-% The file \code{TPM\_template.py} is the ILA template.
-% The file \code{TPM\_simulator.py} is a python simulator of the TPM registers that
-% were  used for verification.
-% The simulator and the template are a formal description of the TPM's registers and command behavior that were outlined previous in Section~\ref{tpm_cmd_regs}. 
