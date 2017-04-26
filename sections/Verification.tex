@@ -343,10 +343,10 @@ Below is an itemized list of what each test is verifying.
 
 \begin{itemize}
  \item  Google Assertions -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
- \item  rollback test -- tests that under no input conditions will LoadFirmware choose a firmware image with a lower version number (see Property~\ref{eq:rollback}).
- \item  rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
- \item  hash failure -- tests that it is impossible to verify an image as correct  if hashing the Firmware body (the VbExHashFirmwareBody function) returns an error (see Property~\ref{eq:hash_cor}).
- \item  RSA failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
+ \item  Rollback test -- tests that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
+ \item  Rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
+ \item  Hash Failure -- tests that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
+ \item  RSA Failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
  \item  Array accesses -- check for all possibilities of array bounds errors.
 \end{itemize}
 
@@ -357,8 +357,8 @@ Below is an itemized list of what each test is verifying.
         \toprule
         test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \midrule
         Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
-        rollback     & 4125 & 1 & 4.27 & 259 & unsat \\
-        rollback/rec & 4123 & 1 & 4.68 & 394 & sat \\
+        Rollback     & 4125 & 1 & 4.27 & 259 & unsat \\
+        Rollback/rec & 4123 & 1 & 4.68 & 394 & sat \\
         Hash Failure & 4182 & 2 & 4.45 & 258 & unsat \\
         RSA  Failure & 4180 & 2 & 4.45 & 258 & unsat \\
         Array Accesses & 4130 & 57 & 126 & 2487 & unsat \\\bottomrule
@@ -405,7 +405,7 @@ VbSelectFirmware is also responsible for locking the TPM's firmware version befo
 This function's final responsibility is to load TPM's PCR0 with the hash of the boot flags.
 
 \begin{itemize}
- \item  TPM locking -- tests that it is not possible for the function to return success if it is unable to lock the TPM
+ \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
  \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
  \item  Array accesses -- check for all possibilities of array bounds errors.
 \end{itemize}
@@ -444,9 +444,9 @@ This allowed us to check larger properties, although we were assuming that the T
 Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM functions.
 
 \begin{itemize}
-   \item TPM Liveness -- Checks that the function will not enter a state where it polls on an unchanging TPM register
-   \item TPM Error Handling -- Checks that the function will only return success if the TPM has performed a Send and Receive action successfully
-   \item TPM Data Receive -- Checks that the function will not return if the TPM still has data to send 
+   \item Liveness -- Checks that TpmSendReceive will not enter a state where it polls on an unchanging TPM register
+   \item Error Handling -- Checks that TpmSendReceive will only return success if the TPM has performed a Send and Receive action successfully
+   \item Data Receive -- Checks that TpmSendReceive will not return if the TPM still has data to send 
 \end{itemize}
 
 \begin{table}[!htbp]
@@ -455,9 +455,9 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
-        TPM Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-        TPM Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
-        TPM Data Receive &  &  & & \\\bottomrule
+        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
+        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        Data Receive &  &  & & \\\bottomrule
     \end{tabular}
 \end{table}
 
@@ -470,11 +470,11 @@ Each function corresponds to a single TPM command and a single call to the TPMSe
 These tests verify correct functionality for the TLCL commands that are used by Vboot. 
 
 \begin{itemize}
-   \item TLCL Error Handling --  all functions return success only if the TPM command completes successfully
+   \item Error Handling --  the TPM returns success only if the TPM command completes successfully
     \item SetupTPM -- the TPM is initialized successfully with well-defined states
-    \item RollbackFirmwareWrite -- the TPM receives the write value unmodified and no TPM assertions are broken
-    \item RollbackFirmwareWrite -- the TPM will always lock the correct section and no TPM assertions are broken
-    \item SetTPMBootModeState -- the TPM receives the PCR value unmodified and no TPM assertions are broken
+    \item  RollbackFirmwareWrite -- the RollbackFirmwareWrite function sends the write value to the TPM unmodified and no TPM assertions are broken
+    \item  RollbackFirmwareLock -- the RollbackFirmwareLock function will always lock the correct section and no TPM assertions are broken
+    \item SetTPMBootModeState -- the SetTPMBootModeState function sends the PCR value to the TPM unmodified and no TPM assertions are broken
 
 \end{itemize}
 
@@ -484,7 +484,7 @@ These tests verify correct functionality for the TLCL commands that are used by 
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & sat/unsat  \\ \midrule
-        TLCL Error Handling & & & & \\
+        Error Handling & & & & \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\

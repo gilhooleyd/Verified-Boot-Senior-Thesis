@@ -71,21 +71,26 @@ This code shows the ILA for the TPM Hardware
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        \textbf{LoadFirmware}  &  & & & & \\
         Google Assertions & 6460 & 34 & 123 & 2312 & sat \\
-        rollback     & 4125 & 1 & 4 & 259 & unsat \\
-        rollback/rec & 4123 & 1 & 6 & 394 & sat \\
+        Rollback     & 4125 & 1 & 4 & 259 & unsat \\
+        Rollback/rec & 4123 & 1 & 6 & 394 & sat \\
         Hash Failure & 4182 & 2 & 5 & 258 & unsat \\
         RSA  Failure & 4180 & 2 & 5 & 258 & unsat \\
         Array Accesses & 4130 & 57 & 126 & 2487 & unsat \\\midrule
+        \textbf{LoadFirmware (malloc)}  &  & & & & \\
         Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
         Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\midrule
+        \textbf{SelectFirmware}  &  & & & & \\
         TPM locking & 5269 & 6 & 2 & 164 & unsat \\
         LoadFirmware & 5264 & 2 & 3 & 164 & unsat \\
         Array Accesses & 5257 & 10 & 3 & 165 &  unsat \\\midrule
-        TPM Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-        TPM Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
-        TPM Data Receive &  &  & & \\ \midrule
-        TLCL Error Handling & & & & \\
+        \textbf{TPM}  &  & & & & \\
+        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
+        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        Data Receive &  &  & & \\ \midrule
+        \textbf{TLCL}  &  & & & & \\
+        Error Handling & & & & \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
