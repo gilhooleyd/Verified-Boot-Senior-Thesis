@@ -302,28 +302,31 @@ will not catch any errors across the Hardware Software boundary.
  \end{figure}
 
 This section describes the verification tests on Vboot using CBMC\@.
-Each subsection begins with a diagram showing the functional call graph of what section of code is being verified.
+Each subsection begins with a diagram showing the functional call graph of the section of code is being verified.
 The diagrams are color-coordinated as followed.
 The blue functions are fully software functions that are implemented in the Vboot Library.
-The red functions connect to the TPM on a real platform, and are verified on the
-ILA TPM for this report.
-The purple functions connect to the SHA accelerator on a real platform, and 
-are verified on the ILA SHA for this report.
+The red functions connect to the TPM on a real platform, and are 
+verified on the TPM ILA for this report.
+The purple functions connect to the SHA accelerator on a real platform, 
+but use a software abstraction for verification.
 
-For each function being verified, the connecting functions are replaced with
-abstractions.
-These abstractions all follow the idea of an ``over-abstracted'' function.
-The abstracted functions can be seen in my Code Repo or the code included in the
-Appendix.
+The following sections focus on verification at the function level.
+The sections are organized so the larger functions are in the beginning and the smaller, more specific functions are at the end. 
+The function being verified in a specific section is left unmodified, but some of the connecting functions are replaced with abstractions.
+These abstractions all follow the idea of an ``over-abstracted'' function discussed in the last section.
+These abstractions are acceptable because the real functions are also verified in later sections.
+The abstracted functions can be seen in the code repo\cite{my-repo}.
 
-Finally, there will be a table describing the results of each CBMC run.
+At the end of each section there will be a table describing the results of each CBMC run.
 CMBC uses an implementation of a SAT solver known as the MiniSat solver\cite{minisat}.
 This solver outputs unSAT if the assertions hold and SAT if they do not. 
 The ``steps'' column is the number of C lines that were stepped through to reach the proof conclusion.
 The ``VCC'' column is the number of user assertions that were being verified.
+The ``time'' column is the total clock time that the verification ran for.
+The ``memory'' column is the maximum memory usage in Megabytes.
 
-All results were gathered on Princeton's SAT8 server cluster. 
-The SAT8 cluster contains an Intel Xeon E5645 CPU and has 128 Gigabytes of RAM.
+All results were gathered on Princeton's SAT8 server. 
+The SAT8 server contains an Intel Xeon E5645 CPU and has 128 Gigabytes of RAM.
 
 \section{VbSelectFirmware}
 
@@ -333,11 +336,14 @@ The SAT8 cluster contains an Intel Xeon E5645 CPU and has 128 Gigabytes of RAM.
   \caption[VbSelectFirmware Call Graph]{The call graph of functions for VbSelectFirmware}\label{fig:vbselfw}
 \end{figure}
 
-The VbSelectFirmware function is the wrapper around LoadFirmware.
-It is responsible for loading flags in from secure storage and for accessing the TPM\@.
-VbSelectFirmware is also responsible for locking the TPM's firmware version before control passes to the firmware image and updating the version if a newer image has been loaded.
-This function's final responsibility is to load TPM's PCR0 with the hash of the boot flags.
+The VbSelectFirmware function mostly acts as a wrapper to LoadFirmware.
+It is responsible for loading data and accessing the TPM\@.
+VbSelectFirmware is responsible for loading a chosen Image's version number into the TPM and locking the TPM's data. 
+This functionality is what prevents rollback attacks across multiple boots.
+VbSelectFirmware is also responsible for loading the TPM's PCR0 with a hash of the system's boot flags.
+This functionality prevents the system from changing boot flags mid-boot without detection.  
 
+Here are the tests run on VbSelectFirmware:
 \begin{itemize}
  \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
  \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
@@ -356,6 +362,10 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
     \end{tabular}
 \end{table}
 
+The CBMC tests run successfully and in a short time.
+The VbSelectFirmware function does little work on its own, so there is not much to verify.
+As we will see in the next section, most of the work is done in LoadFirmware. 
+
 \section{LoadFirmware}
 
 \begin{figure}[!htbp]
@@ -364,10 +374,9 @@ This function's final responsibility is to load TPM's PCR0 with the hash of the 
   \caption[LoadFirmware Call Graph]{The call graph of functions for LoadFirmware}\label{fig:loadfw}
 \end{figure}
 
-LoadFirmware is the highest level function that drives Vboot's Firmware Image
-verification process.
-LoadFirmware is responsible for verifying the Keyblock, Preamble, and Image.
-When LoadFirmware returns, it will have set the pass or fail statuses of both Firmware Images, and control will pass to a working Image.
+LoadFirmware drives most of Vboot's Image attestation process.
+LoadFirmware is responsible for attesting the Keyblock, Preamble, and Image.
+When LoadFirmware returns, it will have set the pass or fail statuses of both Images, and control will pass to a working Image.
 
 The CBMC test results for this function can be seen in Table~\ref{ldfw_results}. 
 Below is an itemized list of what each test is verifying.
@@ -401,7 +410,7 @@ Below is an itemized list of what each test is verifying.
     \caption{Verifying LoadFirmware function (with memory addressing)}\label{ldfw_results_malloc}
     \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs  & time (s) & memory (Mb) &)sat/unsat  \\ \midrule
+        test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \midrule
         Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
         Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\bottomrule
     \end{tabular}
@@ -409,20 +418,26 @@ Below is an itemized list of what each test is verifying.
 
 We can see from these tests that CBMC is working as expected.
 The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
-All of the assertions were checked in a very short time without the memory allocating technique outlined in Section~\ref{my-malloc}. 
+All of the assertions were checked in a short time without the memory allocating technique outlined in Section~\ref{my-malloc}. 
 However, CBMC was able to find counterexamples to the Google Assertions because array addressing was not working correctly.
-The counterexamples used preamble and keyblock addresses outside of the bounds of the original Image.
-This was not caught by the assertions because the array addressing was not working correctly.
+The counterexamples involved Preamble and Keyblock addresses that were outside the bounds of the original Image.
+These addresses allowed Vboot to behave insecurely because the array addressing was not working correctly.
+However, we can see that Vboot checks for this when the memory addressing technique is applied in Table~\ref{ldfw_results_malloc}
 
 Table~\ref{ldfw_results_malloc} shows the same tests with the memory allocating technique implemented.
 We can see that CBMC takes much longer to proof the assertions, but the Google Assertions are working correctly.
-
 Without the memory allocation technique, it would be reasonable to assume that a generic personal computer could run Formal Verification with CBMC. 
-The first tests finished in under two minutes and the most memory used was a little over two Gigabytes of RAM.
-However, with CBMC, the tests take up to an hour and use up to sixty Gigabytes of memory.
-It is extremely unlikely that a personal computer would have sixty Gigabytes of RAM, meaning that CBMC can only be run on a large server for this type of verification. 
+The first tests finished in under two minutes and the most memory used was roughly 2 Gb of RAM.
+However, with CBMC, the tests take up to an hour and use up to 60 Gb of RAM.
+It is extremely unlikely that a personal computer would have 60 Gb of RAM, meaning that CBMC can only be run on a large server for this type of verification. 
 
 \section{TPM TLCL functions}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{tpm_fun.png}
+  \caption[TPM Call Graph]{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
+\end{figure}
 
 The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
 Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
@@ -442,7 +457,7 @@ These tests verify correct functionality for the TLCL commands that are used by 
     \caption{CBMC tests on TLCL Library}\label{TLCL_results}
     \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & sat/unsat  \\ \midrule
+        test name & steps & VCCs & time (s) & memory (Mb)& sat/unsat  \\ \midrule
         Error Handling & & & & \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
@@ -451,30 +466,18 @@ These tests verify correct functionality for the TLCL commands that are used by 
     \end{tabular}
 \end{table}
 
-We can see again that CBMC is working correctly.
-These tests also include the TPM assertions outlined in the previous section.
-These TPM assertions are now verified across multiple TLCL commands.
+The longest test run in this section finishes in thirty minutes and uses 6.7 Gb of RAM.
+It is likely that these tests could be run on a high-end laptop.
+All tests completed successfully. 
+In addition to the individual test assertions, the tests also include the TPM assertions outlined in the next section.
 
 \section{TPM Send and Receive}
 
-\begin{figure}[!htbp]
-  \centering
-  \includegraphics[width=0.6\linewidth]{tpm_fun.png}
-  \caption[TPM Call Graph]{This shows the Vboot call graph for the TPM functionality}\label{fig:tpm_call_graph}
-\end{figure}
-
-Vboot is responsible for setting up the TPM and protecting its
-sections against the rest of the system that will eventually be loaded.
-The TPM is responsible for securely storing the boot state and the
-Image's version number.
-TPM's storage of the version number allows Vboot to protect against 
-an attacker loading an older, less secure image from Google (Rollback attack).
-TPM's storage of the boot state allows Vboot to protect against an attacker 
-changing the developer mode or recovery mode in mid-boot.
-
-In earlier sections we checked software properties by abstracting the TPM to a simple storage array. 
-This allowed us to check larger properties, although we were assuming that the TPM functions were working correctly.
-Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM functions.
+Each TLCL function passes through the single function TpmSendReceive.
+TpmSendReceive sends data to and from the TPM with the TPM command registers outlined in Section~\ref{tpm_cmd_regs}. 
+The TpmSendReceive function must be verified against all possible inputs to ensure that the TPM cannot be put into an unwanted state.
+The assertions outlined in this section are also verified against the TLCL library functions in the previous section.
+While the previous section verified TPM correctness during well-defined commands, this section verifies the TPM against sending and receiving random data.
 
 \begin{itemize}
    \item Liveness -- Checks that TpmSendReceive will not enter a state where it polls on an unchanging TPM register
@@ -494,5 +497,14 @@ Now, we will be using the TPM's ILA model to verify correctness of Vboot's TPM f
     \end{tabular}
 \end{table}
 
-% TODO: Talk about how Liveness was actually calculated
+Again, everything is able to verified successfully. 
+The longest command finished in 6 minutes and used 15 Gb of RAM. 
+These commands would likely have to be run on a high-end Desktop or Server because of their high RAM usage.
 
+The Liveness property was verified in a unique way compared to other properties in this report.
+The Liveness property ensures that the TPM firmware will not be stuck in an infinite loop.
+An infinite loop will result if the firmware polls a TPM register that will never change, or if the TPM returns an infinite amount of data.
+These situations are checked against using CBMC's loop unrolling.
+Each \code{while} loop is unrolled a pre-defined number of times.
+CBMC inserts assertions that the loops will not be accessed more than their unroll limit.
+Because the loop unrolling assertions hold for every possible input, we can be sure that each loop is run a finite number of times.
