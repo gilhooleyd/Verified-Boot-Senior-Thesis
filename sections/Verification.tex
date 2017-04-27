@@ -305,10 +305,10 @@ This section describes the verification tests on Vboot using CBMC\@.
 Each subsection begins with a diagram showing the functional call graph of the section of code is being verified.
 The diagrams are color-coordinated as followed.
 The blue functions are fully software functions that are implemented in the Vboot Library.
-The red functions connect to the TPM on a real platform, and are 
-verified on the TPM ILA for this report.
 The purple functions connect to the SHA accelerator on a real platform, 
 but use a software abstraction for verification.
+The red functions connect to the TPM on a real platform, and are 
+verified on either the TPM ILA or the TPM C abstraction.
 
 The following sections focus on verification at the function level.
 The sections are organized so the larger functions are in the beginning and the smaller, more specific functions are at the end. 

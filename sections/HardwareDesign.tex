@@ -297,3 +297,16 @@ It produces an abstraction that is aware of how the hardware reacts to reads and
 writes of specific registers.
 This template can be connected back with the software such that verification is
 aware of the Hardware-Software boundary.
+
+The benefits of the ILA toolchain are clearly seen when looking at its
+expressiveness in capturing hardware behavior.
+The QEMU TPM interface is defined in 3,077 lines of C code.
+This does not include the functionality of the TPM itself.
+This same functionality can be captured with an ILA template of the TPM
+interface that is 144 lines of python code.
+Additionally, a TPM simulator was created in 253 lines of python code.
+The same TPM simulator was converted to 307 lines of C code.
+These simulators can be verified to have identical behaviors using the ILA
+toolchain.
+They can also be verified against the ILA's synthesized TPM, which combines the
+template and one implementation and creates a 1,880 line C file.

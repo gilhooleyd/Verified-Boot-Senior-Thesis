@@ -7,8 +7,7 @@ Model checking abstractions were discussed, such as abstracted functions, memory
 allocation, and non-deterministic array writes.
 These abstractions were necessary for Formal Verification tools to produce
 results on the Verified Boot software.
-Additionally, model checking was shown to be a good replacement for the unit
-testing assertions which is already in place throughout Verified Boot.
+It was shown that the high RAM usage of CBMC prevents verification from being run on personal computers.
 
 \section{Future Work}
 
@@ -16,16 +15,16 @@ The analysis on Verified Boot is helpful in the way that it can be applied to
 other systems. 
 Verified Boot was chosen because it is a widely used code base
 that crosses the Hardware-Software boundary. 
-However other systems exhibit more interesting behavior from a verification standpoint.
+However other systems exhibit more interesting behavior like concurrent hardware accesses.
 
 Verified Boot uses hardware, but there are very little opportunities for
 problems involving hardware concurrency.
 Other systems include interweaving uses of non-blocking
-Hardware\cite{load-protocol} and these systems would showcase more strengths of the ILA functionality. 
+Hardware\cite{load-protocol} and applying the ILA toolchain to these systems would showcase more strengths of the ILA.
 
-One direction for the ILA toolchain that has been considered but not explored
+Another direction for the ILA toolchain that has been considered but not explored
 is its use to verify that two hardware modules have the same functionality.
-This direction is important as there are many TPM's produced by various Hardware
+This type of verification  is important as a TPM can be produced by various Hardware
 Vendors\cite{atmel-tpm}\cite{broadcom-tpm}\cite{infineon-tpm}, and the different 
 implementations have been found to vary significantly\cite{tcg-inside}.
 A full ILA description of a TPM would be very useful for comparing two hardware
