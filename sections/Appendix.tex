@@ -65,6 +65,27 @@ This code shows the ILA for the TPM Hardware
 \clearpage
 \pagebreak
 
+\section{Complete Verification Results}
+\begin{itemize}
+ \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
+ \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
+ \item  Array accesses -- check for all possibilities of array bounds errors.
+ \item  Google Assertions -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
+ \item  Rollback test -- tests that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
+ \item  Rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
+ \item  Hash Failure -- tests that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
+ \item  RSA Failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
+ \item  Array accesses -- check for all possibilities of array bounds errors.
+   \item Error Handling --  the TPM returns success only if the TPM command completes successfully
+    \item SetupTPM -- the TPM is initialized successfully with well-defined states
+    \item  RollbackFirmwareWrite -- the RollbackFirmwareWrite function sends the write value to the TPM unmodified and no TPM assertions are broken
+    \item  RollbackFirmwareLock -- the RollbackFirmwareLock function will always lock the correct section and no TPM assertions are broken
+    \item SetTPMBootModeState -- the SetTPMBootModeState function sends the PCR value to the TPM unmodified and no TPM assertions are broken
+   \item Liveness -- Checks that TpmSendReceive will not enter a state where it polls on an unchanging TPM register
+   \item Error Handling -- Checks that TpmSendReceive will only return success if the TPM has performed a Send and Receive action successfully
+   \item Data Receive -- Checks that TpmSendReceive will not return if the TPM still has data to send 
+\end{itemize}
+
 \begin{table}[!htbp]
     \centering
     \caption{All CBMC Tests}\label{all_results}
