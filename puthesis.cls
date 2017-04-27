@@ -104,9 +104,14 @@
   \clearpage}
 \newcommand*{\makeabstract}{
   \newpage
+      \onehalfspacing
   \addcontentsline{toc}{section}{Abstract}
   \begin{center}
-  \Large \textbf{Abstract}
+  \large \textbf{\@title} \\
+  \vspace{0.25in}
+  \normalsize    David J. Gilhooley \\
+  \vspace{0.5in}
+  \large Abstract
   \end{center}
   \@abstract
   \clearpage
