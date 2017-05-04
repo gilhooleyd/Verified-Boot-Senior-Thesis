@@ -458,7 +458,7 @@ These tests verify correct functionality for the TLCL commands that are used by 
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb)& sat/unsat  \\ \midrule
-        Error Handling & & & & \\
+        Error Handling & 34639 & 10 & 11 & 1579 & unsat \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
@@ -481,7 +481,7 @@ While the previous section verified TPM correctness during well-defined commands
 
 \begin{itemize}
    \item Liveness -- Checks that TpmSendReceive will not enter a state where it polls on an unchanging TPM register
-   \item Error Handling -- Checks that TpmSendReceive will only return success if the TPM has performed a Send and Receive action successfully
+   \item Data Send -- Checks that TpmSendReceive will only return success if the TPM has read each sent byte successfully
    \item Data Receive -- Checks that TpmSendReceive will not return if the TPM still has data to send 
 \end{itemize}
 
@@ -491,9 +491,10 @@ While the previous section verified TPM correctness during well-defined commands
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
-        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
-        Data Receive &  &  & & \\\bottomrule
+        Liveness & 20369 & 2217 & 359 & 56434 & unsat \\
+        Data Send & 21703 & 259 & 34 & 3991 & unsat \\
+        Data Receive & 20231 & 2 & 391 & 61040 & unsat \\ \bottomrule
+
     \end{tabular}
 \end{table}
 

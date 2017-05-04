@@ -2,7 +2,7 @@
 
 This section describes the Hardware design of Google's Verified Boot (Vboot). 
 
-Verified boot main job is to check that the image being loaded originated from
+Verified boot's main job is to check that the image being loaded originated from
 Google and has not been modified. 
 This is accomplished by the cryptographic functions of hashing and signing.
 These functions can be computationally expensive and they are used often in a
@@ -90,8 +90,8 @@ The registers are described below.
 
 \begin{itemize}
     \item \code{Status} --- Reading this register returns a value with flags
-        that claim if the TPM is accepting a command, sending a command, or
-        busy. Writing specific values to this register can tell the TPM to start
+        that show if the TPM is accepting a command, sending a command, or
+        busy. Writing specific values to this register tells the TPM to start
         accepting a command, or to run a command that has recently been sent.
     \item \code{Burst} --- Reading this register lets the CPU know how many
         bytes can be read (if sending a command) or written (if receiving a
@@ -113,13 +113,6 @@ Now that it is understood how commands are passed to and from the TPM, we can di
 
 \subsection{Platform Configuration Registers}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.4\linewidth]{pcr_alg.png}
-  \caption{\code{PCR\_Extend} Hardware Diagram}
-  \label{fig:pcr_alg}
-\end{figure}
-
 One component of the TPM is called Platform Configuration Register, or PCR.
 The goal of a PCR is to store measurements of the system state in a secure way. 
 PCRs are secure storage because they cannot be written to directly, they are either extended or reset. 
@@ -130,6 +123,12 @@ The TCG states that only three commands affect PCRs: \code{PCR\_Extend},
 PCRs can also be locked, meaning that they are then unable to be extended or reset for the remainder of the system's power cycle.
 The TCG specifications of these commands are included in the Appendix.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{pcr_alg.png}
+  \caption{\code{PCR\_Extend} Hardware Diagram}
+  \label{fig:pcr_alg}
+\end{figure}
 
 The hardware diagram of \code{PCR\_Extend} can be seen in Figure~\ref{fig:pcr_alg}.
 Because the PCRs store a SHA1 Hash, they are useful for taking the measurement of a system.  

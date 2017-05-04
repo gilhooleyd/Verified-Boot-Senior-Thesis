@@ -91,7 +91,7 @@ This code shows the ILA for the TPM Hardware
     \caption{All CBMC Tests}\label{all_results}
     \begin{tabular}{lrrrrr}
         \toprule
-        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \bottomrule
+        test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
         \textbf{SelectFirmware}  &  & & & & \\
         TPM locking & 5269 & 6 & 2 & 164 & unsat \\
         LoadFirmware & 5264 & 2 & 3 & 164 & unsat \\
@@ -107,14 +107,15 @@ This code shows the ILA for the TPM Hardware
         Google Assertions & 6460 & 34 & 3799 & 60496 & unsat \\
         Rollback, Hash, RSA & 2858 & 6 & 3733 & 59874 & unsat \\\midrule
         \textbf{TLCL}  &  & & & & \\
-        Error Handling & & & & \\
+        Error Handling & 34639 & 10 & 11 & 1579 & unsat \\
         SetupTPM & 613418 & 140 & 1674 & 6960 & unsat \\
         RollbackFirmwareWrite & 478639 & 108 & 952 & 5447 & unsat \\
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
         SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \midrule
         \textbf{TPM}  &  & & & & \\
         Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
-        Data Receive &  &  & & \\ \midrule
+%        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        Data Send & 21703 & 259 & 34 & 3991 & unsat \\
+        Data Receive & 20231 & 2 & 391 & 61040 & unsat \\ \bottomrule
     \end{tabular}
 \end{table}

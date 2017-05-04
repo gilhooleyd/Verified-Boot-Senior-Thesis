@@ -4,6 +4,7 @@ FILE = thesis
 SECTIONS = sections
 
 all:
+	bibtex $(FILE)
 	pdflatex $(FILE).tex
 view:
 	open $(FILE).pdf
