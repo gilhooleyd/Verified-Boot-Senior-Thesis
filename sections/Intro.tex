@@ -13,7 +13,7 @@ Unit Testing is the process of dividing a program up into functional chunks and
 verifying each function as a single unit. 
 These units are used as ``black boxes'', meaning that they are fed a range
 of test inputs, and the behavior is compared against expected results.
-However, Unit Testing has a problem with scaling and with interface interaction.
+However, Unit Testing has a problem with scaling. 
 Inputs for tests scale exponentially, meaning computers can only check a unit against
 every possible input if the space of inputs is relatively small. 
 Most Unit Tests only test against a few inputs that are thought to be
@@ -56,9 +56,10 @@ This means that the software does not need to implement a decryption function.
 However, the software now needs to know how to communicate with the Hardware
 module. 
 Software that is aware of specific Hardware is known as Firmware.
-Firmware is Software that reads and writes to registers connected to Hardware located on the SoC.
-The remainder of this report will not use the term Firmware, and will instead refer to the boundary of Software and Hardware.
-This is a decision to use a clearer naming convention.
+Software interacts with Hardware by reading and writing to specific registers.
+Firmware is the Software that controls these register interactions.
+The remainder of this thesis will not use the term Firmware, and will instead refer to the boundary of Software and Hardware.
+This naming convention provides more clarity for the purpose of this thesis.
 
 The boundary between Software and Hardware is more important now that SoCs are becoming larger and including more
 specialized Hardware. 
@@ -71,8 +72,7 @@ algorithms.
 
 Formal Verification is defined as the application of mathematical methods to
 prove or disprove the specification of a system~\cite{greenstreet}.
-To use Formal Verification, properties of a system have to be specified by the
-user. 
+To use Formal Verification, the user specifies properties of a system to be verified.
 Propositional logic is one of the main ways that properties are specified.
 For example, a programmer could express that given the fact that a password
 check failed, the user should not be allowed to access bank statements.
@@ -104,7 +104,7 @@ Section~\ref{sec:Verif}.
 \section{Problem Statement}
 
 The trend in modern Computer Architecture is to offload computation to specialized hardware for either speed or power savings~\cite{hardware-accel}.
-As this pattern increases the job of verifying functionality becomes more difficult.
+As this becomes more common the job of verifying functionality becomes more difficult.
 Software and Hardware can be verified as separate units but this misses bugs
 that exist as a result of the interaction between the two.
 
@@ -113,7 +113,7 @@ These SoCs have been built by connecting numerous open source components where t
 Formal verification has been seen to be successful in analyzing security
 protocols such as Secure Boot~\cite{elane}, Remote
 Attestation~\cite{trustfound}, and Firmware Loading~\cite{load-protocol}. 
-However, most research papers create their own SoCs from Open Source hardware
+However, most research papers create their own SoCs from open source hardware
 and develop their own firmware for verification.
 While these papers are useful, they do not say much about the application of
 Formal Verification to industry SoCs or industry Firmware.
@@ -128,8 +128,7 @@ greatly speed up the verification of different systems.
 Throughout this paper, the  Instruction Level Abstraction (ILA) toolchain will be used to define Hardware Software interactions.
 An ILA defines Hardware as a collection of instructions that can be used by
 Software through accessing specific registers~\cite{ila}.
-The ILA toolchain provides a way to ``precisely capture updates to all firmware-
-accessible states spanning cores, accelerators, and peripherals~\cite{ila-template}.''
+The ILA toolchain provides a way to ``precisely capture updates to all firmware-accessible states spanning cores, accelerators, and peripherals~\cite{ila-template}.''
 This technique claims to allow software and hardware to be verified simultaneously and at scale using formal methods.
 
 This thesis will be applying formal verification techniques to Google Chrome's
@@ -161,7 +160,7 @@ techniques can be extended to other large projects.
 
 This report also takes advantage of the Instruction Level Abstraction tool chain
 to show its effectiveness in a large scale system.
-In doing so, a hardware model is created for the Trusted Computing
+In doing so, a hardware model is created for parts of the Trusted Computing
 Module (TPM).
 The universal nature of the ILA toolchain means this hardware abstraction can be used in other projects.
 The use of the ILA toochain in this paper also displays its effectiveness in large projects.

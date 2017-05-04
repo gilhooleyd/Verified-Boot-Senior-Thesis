@@ -356,7 +356,7 @@ Here are the properties verified on VbSelectFirmware:
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on VbSelectFirmware function}\label{sfw_results}
+    \caption{Verifying the VbSelectFirmware function}\label{sfw_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
@@ -396,7 +396,7 @@ The following is an itemized list of what each check is verifying.
 
 \begin{table}[!htbp]
     \centering
-    \caption{Verifying LoadFirmware function}\label{ldfw_results}
+    \caption{Verifying the LoadFirmware function}\label{ldfw_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \midrule
@@ -411,7 +411,7 @@ The following is an itemized list of what each check is verifying.
 
 \begin{table}[!htbp]
     \centering
-    \caption{Verifying LoadFirmware function (with memory addressing)}\label{ldfw_results_malloc}
+    \caption{Verifying the LoadFirmware function (with memory addressing)}\label{ldfw_results_malloc}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs  & time (s) & memory (Mb) & sat/unsat  \\ \midrule
@@ -447,6 +447,9 @@ The TPM Lightweight Command Library (TLCL) is Google's library for building and 
 Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
 These checks verify correct functionality for the TLCL commands that are used by Vboot. 
 
+At this point, the TPM abstraction created in Section~\ref{sec:TPM} is added to the verification program.
+The TPM abstraction connects to Vboot as described in Section~\ref{sec:ILA-connect}.
+
 \begin{itemize}
    \item Error Handling --  the TPM returns success only if the TPM command completes successfully
     \item SetupTPM -- the TPM is initialized successfully with well-defined states
@@ -458,7 +461,7 @@ These checks verify correct functionality for the TLCL commands that are used by
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC checks on TLCL Library}\label{TLCL_results}
+    \caption{Verifying the TLCL Library}\label{TLCL_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb)& sat/unsat  \\ \midrule
@@ -491,7 +494,7 @@ While the previous section verified TPM correctness during well-defined commands
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on VbExTpmSendReceive function}\label{tpmSR_results}
+    \caption{Verifying the VbExTpmSendReceive function}\label{tpmSR_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule

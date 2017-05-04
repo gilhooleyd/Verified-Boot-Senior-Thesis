@@ -1,9 +1,9 @@
-\chapter{Software Design}
+\chapter{Software Design}\label{sec:sw_design}
 
 This section will discuss the Software implementation of Verified
 Boot. 
-Verified Boot (Vboot) is a secure boot implementation only loads a
-Kernel Image that has been signed by Google and is untampered.
+Verified Boot (Vboot) is a secure boot implementation only loads 
+an Image that has been signed by Google and is untampered.
 Images that have been recognized as security risks will not be loaded and the system will restart into a Recovery Mode.
 This chapter discusses the security promises made by the system as well
 as the attack vectors that are not considered.
@@ -73,7 +73,7 @@ between Read-Only and Read-Write memory.}
 The Read-Only Firmware of Vboot is responsible for attesting Google's Image. 
 Vboot contains all of the code and hardware drivers it needs to accomplish this task.
 It verifies the Image signature using Google's main public key.
-This public key is also read only so it is guaranteed to be secure.
+This public key is also read-only so it is guaranteed to be secure.
 The Read-Only Firmware is also responsible for the transitions between Developer Mode, Safe Mode, and Recovery Mode.
 These transitions will be described in more detail in Section~\ref{sec:boot-modes}.
 
@@ -201,7 +201,7 @@ The actual Image is not a data structure but a chunk of data that is loaded
 contiguously into RAM\@.
 The image structure, as seen in Figure~\ref{fig:vboot_images}, consists of three
 parts: the Key Block, the Preamble, and the main body of the image.
-The Key Block is attested first using Google's public key stored in Read Only memory.
+The Key Block is attested first using Google's public key stored in Read-Only memory.
 Once the Key Block has been shown to be safe, the Key Block's public key will be used to verify the preamble.
 The Preamble contains a hash of the Image's body.
 The Image's body contains the code that is going to be run next.
