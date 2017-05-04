@@ -54,9 +54,13 @@ If software wants to decrypt a message, then it can pass the message to an RSA
 hardware module and receive the decrypted message back.
 This means that the software does not need to implement a decryption function.
 However, the software now needs to know how to communicate with the Hardware
-module. This communication between Hardware and Software is known as Firmware.
+module. 
+Software that is aware of specific Hardware is known as Firmware.
+Firmware is Software that reads and writes to registers connected to Hardware located on the SoC.
+The remainder of this report will not use the term Firmware, and will instead refer to the boundary of Software and Hardware.
+This is a decision to use a clearer naming convention.
 
-Firmware is more important now that SoCs are becoming larger and including more
+The boundary between Software and Hardware is more important now that SoCs are becoming larger and including more
 specialized Hardware. 
 More computers are including security based hardware, like hashing and encryption/decryption modules.
 It is no longer enough to verify software and hardware separately, as the

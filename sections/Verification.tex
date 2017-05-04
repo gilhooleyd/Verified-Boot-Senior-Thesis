@@ -14,7 +14,6 @@ The array access property restricts the writeable addresses in memory to valid a
 Program flow properties refer to the program's execution path.
 Correctness properties refer to facts about the code such that, if things were
 designed successfully, certain states should not be reached.
-Together these categories of properties should be enough to prove the security claims made by Vboot.
 
 These properties will be specified in Computation Tree Logic (CTL). 
 CTL adds temporal distinctions over propositional logic and this allows one to easily describe how a system changes over time.
@@ -168,10 +167,15 @@ In the formulas above, img refers to the Image to be verified (either Image A or
 $M_d$ refers to developer mode being active and $M_r$ refers to recovery mode being active.
 Img.version is the Image version number and prevVersion is the last seen version that is stored in the TPM\@.
 
+\begin{equation} \label{eq:contra}
+    (a \to b) = (\lnot a \to \lnot b)
+\end{equation}
+
 The contrapositive of these properties will be proved.
 The contrapositive of a conditional is the inverse of the condition where the antecedent and consequent are negated.
 For example, instead of proving that ``if the hash fails then the image will fail'' it will be proved that ``if the image passes then the hash must have passed''. 
-This is easier to check and is logically equivalent.
+The formula for a contrapositive is expressed in Equation~\ref{eq:contra}.
+The contrapositive is easier to check through software assertions and is logically equivalent to the original property.
 
 
 \section{CBMC}

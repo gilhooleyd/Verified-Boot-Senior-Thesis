@@ -2,9 +2,11 @@
 
 This section describes the Hardware design of Google's Verified Boot (Vboot). 
 
-Vboot's main job is to check that the image being loaded originated from
-Google and has not been modified. 
-This is accomplished by the cryptographic functions of hashing and signing.
+Vboot runs before the chromebook's main operating system and verifies that the operating system has originated from Google and has not been modified.
+The main operating system is packaged together with meta-data and security information such as signatures and checksums. 
+This package will be referred to as Google's Image.
+
+Vboot attests the Image by the cryptographic functions of hashing and signing.
 These functions can be computationally expensive and they are used often in a
 modern computer, so they are good candidate for hardware acceleration.  
 
