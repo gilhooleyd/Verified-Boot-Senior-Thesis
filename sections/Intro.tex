@@ -1,18 +1,18 @@
 \chapter{Introduction}
 
 Computing systems are becoming larger and more complicated, making security
-issues harder to find.
-At the same time security problems are having larger impacts on both the personal and societal level.
+vulnerabilities harder to find.
+At the same time security breaches are having a larger impact on both personal and societal levels.
 As the computer industry begins to produce laptops, smart phones, servers, and embedded systems, computer
 hardware becomes more diverse and specialized. Diverse hardware increases the
 potential for vulnerabilities, and a hardware vulnerability is difficult or
 impossible to fix without replacing the device. 
 
-Current industry standard is to use Unit Testing to discover errors in programs. 
+The current industry standard is to use Unit Testing to discover errors in programs. 
 Unit Testing is the process of dividing a program up into functional chunks and
 verifying each function as a single unit. 
 These units are used as ``black boxes'', meaning that they are fed a range
-of test inputs, and the behavior is compared against a set of assumptions.
+of test inputs, and the behavior is compared against expected results.
 However, Unit Testing has a problem with scaling and with interface interaction.
 Inputs for tests scale exponentially, meaning computers can only check a unit against
 every possible input if the space of inputs is relatively small. 
@@ -20,6 +20,7 @@ Most Unit Tests only test against a few inputs that are thought to be
 representative. 
 However, this means that there is always the possibility of bugs
 on the set of inputs that were not used in testing.
+It also leads to the possibilities of false positives when testing on inputs that cannot appear in a real system.
 
 Formal Verification can be seen as an enhancement to Unit Testing. 
 Formal Verification is the act of proving or disproving the correctness of a
@@ -31,27 +32,24 @@ will produce proofs that the properties hold under all possible inputs.
 Unlike Unit Testing, Formal Verification tools look at the code itself to quickly find inputs that would violate a user-defined property. 
 
 Formal Verification guarantees that a program is working correctly. 
-This is very helpful for security programs where bugs can release personal information or allow malicious behavior.
-Formal Verification of programs are becoming more popular as a formal proof of
-a program's correctness provides peace of mind against security bugs.
 However, today's security programs are relying both on software programs and
-hardware modules working together, and there are no industry standards to
-produce verification across this new boundary.
+hardware modules working together, and there are no industry standards for
+ verification across this boundary.
 
 \section{The Hardware-Software Boundary}
 
 Originally a computer was a general purpose CPU, and software would
 describe how the CPU should perform various tasks.
 Today, computer engineers realize that specialized hardware can perform a single
-task much more quickly than generalized hardware.
+task much more efficiently than generalized hardware.
 This lead to the creation of a System on a Chip, or SoC. An SoC is the
-combination of a CPU with smaller hardware modules that perform specialized
+combination of CPUs with smaller hardware modules that perform specialized
 tasks.
 The CPU is still the main processing unit, meaning it is responsible for
 communicating with each hardware module.
 However, the CPU no longer performs all processing in the system.
 
-Hardware modules are taking responsibility away from software.
+Hardware modules are taking some responsibility away from software.
 If software wants to decrypt a message, then it can pass the message to an RSA
 hardware module and receive the decrypted message back.
 This means that the software does not need to implement a decryption function.
@@ -75,27 +73,25 @@ Propositional logic is one of the main ways that properties are specified.
 For example, a programmer could express that given the fact that a password
 check failed, the user should not be allowed to access bank statements.
 If $A$ is access and $P$ is correct password, then the following statement
-describes the property that, ``If access is given, then the Password is true''.
+describes the property that, ``If access is given, then the Password is correct''.
 
 \begin{equation}
     A \to P
 \end{equation}
 
-Propositional Logic is one standard for specifying properties because it is easily
-broken down into other formats which can be verified automatically.
-For example, all Propositional Logic statements can be described completely
+Propositional Logic statements can be described completely
 through Boolean Logic and can then be evaluated using Boolean Satisfiability
 Solvers (SAT solvers)~\cite{validating-sat}. 
 SAT Solvers are an important component of verification but they have known limitations with scaling.
 Additional systems have been used to extend the capabilities of SAT solvers, allowing them to describe more complicated properties and systems. 
-One system is known as Satisfiability Modulo Theories (SMT), which replaces
-Boolean logic elements (eg: AND, OR) with predicates such as inequalities (eg:
-Less Than, Greater Than) or uninterpreted functions. 
+One system is known as Satisfiability Modulo Theories (SMT), where 
+Boolean variables can represent predicates such as inequalities between real valued variables (eg:
+$x < y$)~\cite{smt}. 
 
 SMT and SAT Solvers are two tools that perform Formal Verification. 
 Automated tools exist to transform software programs with assertions into SMT statements.
 This means that software can be easily verified with SMT solvers.
-One popular tool that will be used in this report is the C Bounded Model Checker (CBMC). 
+One popular tool that was used in this research is the C Bounded Model Checker (CBMC)~\cite{cbmc}. 
 This tool automatically transforms software into SMT statements and verifies
 user assertions.
 More information about Verification tools can be found in
@@ -107,10 +103,8 @@ The trend in modern Computer Architecture is to offload computation to specializ
 As this pattern increases the job of verifying functionality becomes more difficult.
 Software and Hardware can be verified as separate units but this misses bugs
 that exist as a result of the interaction between the two.
-The boundary between Software and Hardware (Firmware) is difficult to verify 
-because it requires both working together.
 
-In the past, small SoCs have been created for the purpose of testing formal verification techniques.
+In past research, small SoCs have been created for the purpose of testing formal verification techniques~\cite{elane}.
 These SoCs have been built by connecting numerous open source components where the hardware specifications are readily available.
 Formal verification has been seen to be successful in analyzing security
 protocols such as Secure Boot~\cite{elane}, Remote
@@ -123,7 +117,7 @@ SoCs and Firmware used by industry are typically much larger and more
 complicated, which makes them more challenging for Formal Verification.
 Additionally, other Formal Verification papers design techniques specific to a
 single application, without considering the extension of a framework for
-generic Hardware Software testing.
+general Hardware Software verification.
 
 A standard tool for verification across the Hardware Software boundary would
 greatly speed up the verification of different systems.
@@ -131,15 +125,14 @@ Throughout this paper, the  Instruction Level Abstraction (ILA) toolchain will b
 An ILA defines Hardware as a collection of instructions that can be used by
 Software through accessing specific registers~\cite{ila}.
 The ILA toolchain provides a way to ``precisely capture updates to all firmware-
-accessible states spanning cores, accelerators, and peripherals''
-\cite{ila-template}.
+accessible states spanning cores, accelerators, and peripherals~\cite{ila-template}.''
 This technique claims to allow software and hardware to be verified simultaneously and at scale using formal methods.
 
 This thesis will be applying formal verification techniques to Google Chrome's
 Verified Boot.
 Verified Boot is a large scale, security based program that spans the Hardware
 Software boundary. 
-It is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops\cite{vboot}.
+It is an implementation of a secure bootloader that has been designed by Google to run on their Chromebook laptops~\cite{vboot}.
 A bootloader is responsible for initializing the computer's hardware and
 loading the rest of the Operating System.
 A secure bootloader will only load an OS that passes specific
@@ -178,7 +171,7 @@ This thesis moves from a description of the Verified Boot system to the Formal
 Verification techniques.
 Chapter 2 describes the Hardware used (and not used) by Verified Boot.
 Chapter 3 describes the Software implementation and organization.
-It will also describe any software deviations from Verified Boot that were
+It describes any software deviations from Verified Boot that were
 necessary.
 Chapter 4 describes the Formal Verification techniques and abstractions used.
 Chapter 5 outlines the results of Formal Verification and outlines security

@@ -21,7 +21,7 @@ CTL adds temporal distinctions over propositional logic and this allows one to e
 The boolean connectives in propositional logic are $\lnot$ for NOT, $\land$ for
 AND, $\lor$ for OR, and $p \to q$ for $p$ implies $q$.
 CTL describes how propositional logic changes through time.
-Table~\ref{ctl_syn} describes the CTL syntax.
+Table~\ref{ctl_syn} describes the CTL operators and syntax.
 
 \begin{table}[!htbp]
     \centering
@@ -42,12 +42,12 @@ Buffer overruns allow a program to write or read to arbitrary memory.
 In Vboot, a buffer overrun could be used to modify the RSA public keys after they have been read in from secure storage, or it could modify the firmware image after it has been verified as secure. 
 Such modifications would defeat the security claims of Vboot and for this reason it is important to prevent the accessing of arrays past the array boundaries.
 
-The equation below describes correct array accesses in CTL. 
+The property below describes correct array accesses in CTL. 
 \begin{equation}
     G(a \to (i > 0 \land i < size(ptr)))
 \end{equation}
-In this equation $a$ is any array access, $ptr$ is the start of the array and $i$ is the access offset.
-This equation states that for every memory access, the index is greater than 0 so it cannot access memory before the array,  and the index is smaller than the size of the array so memory after the array cannot be accessed.
+In this property $a$ is any array access, $ptr$ is the start of the array and $i$ is the access offset.
+This property states that for every memory access, the index is greater than 0 so it cannot access memory before the array,  and the index is smaller than the size of the array so memory after the array cannot be accessed.
 
 Array indexing is common enough that CBMC provides checking by default.
 However, this check on its own is not strong enough to provide array access security for Vboot. 
@@ -56,14 +56,14 @@ Vboot reads the Image from disk as one contiguous binary.
 After the Image has been loaded, the data structures within the Image use size and offset variables to locate more data.
 CBMC is not able to automatically detect if this pointer manipulation results in an access outside of the Image.
 
-The following equation defines correct pointer manipulation in Vboot. 
+The following property defines correct pointer manipulation in Vboot. 
 \begin{equation}
     G(\text{offset}(\text{struct}) + \text{size}(\text{struct}) <
     \text{size}(\text{img}) \land \text{offset}(\text{struct}) > 0)
 \end{equation}
-In this equation $struct$ is the structure being created from a pointer dereference, and $img$ is the image that it is being pointed to.
-The equation states that the offset and size of the struct do not go past the edge of the image and that the offset of the struct does is not negative.
-We can assume that the offset is not negative because Vboot offsets should only points forward in the Image.
+In this property $struct$ is the structure being created from a pointer dereference, and $img$ is the image that it is being pointed to.
+The property states that the offset and size of the struct do not go past the edge of the image and that the offset of the struct does is not negative.
+We can assume that the offset is not negative because Vboot offsets should only point forward in the Image.
 
 Together these two properties state that array accesses must be in bounds and that structure dereferencing must be in bounds of the image that is being referenced.
 As these are the two memory referencing techniques that have the potential for overrun, these properties protect the system against overrun attacks.
@@ -86,13 +86,13 @@ It is also necessary to note that Developer mode will skip a step in the verific
 
 Let $s_i$ correspond to the ith stage from Figure~\ref{fig:v_flow} and $s_{ai}$ or $s_{bi}$ correspond to that stage for Image A or Image B respectively.
 
-The equation below states that at any time, we must be in at least one of five stages for either image A or image B.
+The property below states that at any time, we must be in at least one of five stages for either image A or image B.
 % Must be in a defined state
 \begin{equation}
     G(\bigvee\limits_{i = 0}^{4} s_{ai} \lor s_{bi})
 \end{equation}
 
-The equation below states the transitions available for Image A.
+The formula below states the transitions available for Image A.
 Each i\textsuperscript{th} stage can transition either to itself or the following stage.
 Image A has the ability to fail and transition immediately to the first stage of attesting Image B.
 
@@ -110,7 +110,7 @@ Image B cannot transition back to verifying Image A or it would be possible to h
     G(s_{bi} \to (s_{bi} \lor s_{bi+1}))
 \end{equation}
 
-The final equation refines the transition for state $s_0$ for Image A and B.
+The final property refines the transition for state $s_0$ for Image A and B.
 In Figure~\ref{fig:v_flow} we can see that state $s_0$ can transition to $s_1$ but it also has a special transition to $s_2$ that is only valid if Developer Mode is enabled.
 
 % State 0 can skip state 1 if in Developer
@@ -118,7 +118,7 @@ In Figure~\ref{fig:v_flow} we can see that state $s_0$ can transition to $s_1$ b
     G(s_0 \to (s_0 \lor s_{1} \lor (M_D \land s_{2})))
 \end{equation}
 
-All together these equations fully describe the program flow graph in Figure~\ref{fig:v_flow}. 
+All together these properties fully describe the program flow graph in Figure~\ref{fig:v_flow}. 
 If these hold then steps will not be skipped in the verification process and we can be assured that verification of the image will be attempted in order.
 
 \subsection{Correctness properties}
@@ -164,7 +164,7 @@ The next property checks that if both images fail, then the Vboot process will f
 % TODO: maybe add a hardware return correctly property
 % TODO: maybe add that if hash(image) = img.hash -> image = img
 
-In the equations above, img refers to the Image to be verified (either Image A or Image B)  and rootKey is Google's public key that has been loaded out of the GBB.
+In the formulas above, img refers to the Image to be verified (either Image A or Image B)  and rootKey is Google's public key that has been loaded out of the GBB.
 $M_d$ refers to developer mode being active and $M_r$ refers to recovery mode being active.
 Img.version is the Image version number and prevVersion is the last seen version that is stored in the TPM\@.
 
@@ -205,7 +205,7 @@ The list below describes the 3 functions in the CBMC API.
         non-deterministic variables to conform.
 \end{itemize}
 
-If the \code{assert()} function throws an exception then CBMC will produce a ``counterexample''.
+If the \code{assert()} function throws an exception then CBMC will produce a ``counterexample.''
 A counterexample lists the program inputs and steps taken that caused the false
 assertion.
 The \code{nondet\_int()} function is very helpful to model user input to the Vboot process.
@@ -217,12 +217,12 @@ integer values.
 \section{Abstractions}
 
 CBMC was able to be successfully run on portions of the verified boot library and provide information on the satisfiability of various assertions.
-Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume up to 8GB of RAM on my local machine and then be cancelled.
+Running CBMC on the Read-Only section of Vboot with a full Firmware Image is not possible as the program will consume the full 126 GB of RAM on the computing sever and then be killed.
 In order to check properties, abstractions needed to be found such that parts of the Vboot flow could be checked at a single time.
 
 \subsection{Function Over-Abstractions}
 
-The key abstraction used by this thesis is that individual functions are mostly
+The key abstraction used is that individual functions are 
 self contained.
 This leads to a natural abstraction at the function definition.
 Each Vboot function returns 0 if successful and an error code if it is not successful.
@@ -262,7 +262,7 @@ Vboot data structures contain offsets to other data structures, not full
 pointers. 
 Vboot uses offsets because the data structures are loaded from disk and there is
 no guarantee that the data will be loaded into a specific address.
-(There is however, a guarantee that the data will be loaded contiguously)
+(There is however, a guarantee that the data will be loaded contiguously.)
 The following code shows the simple pointer arithmetic needed for offsets.
 
 \begin{equation} \label{eq:ptr}
@@ -279,30 +279,24 @@ structures so CBMC would perform the correct arithmetic.
 In this abstraction memory addresses start at 0x0 and increase as needed.
 Memory is never reclaimed.
 The idea for this abstraction originated from the work done in modeling memory
-by Franjo Ivancic\cite{eff-model-check}.
+by Franjo Ivancic~\cite{eff-model-check}.
 
 \subsection{Google's Assertions}
 
 Google has already created a Unit Test Framework for the Verified Boot process.
 This framework tests various properties of each function.
 The testing framework also relied on propositional logic and assert statements.
-With minor changes to the framework the each test could also be verified using Formal Verification tools.
+With minor changes to the framework each test could also be verified using Formal Verification tools.
 
 The verification work done in this paper is still strictly better than the existing tests. 
-The existing assertions are now proven formally on any input, and more advanced properties were able to be proven. 
+The existing assertions are now proven formally on any input, and more advanced properties could be proven. 
 Google's framework also stubs out any calls to hardware, meaning that it 
 will not catch any errors across the Hardware Software boundary.
 
 \chapter{Verification Results}\label{sec:VerifResults}
 
- \begin{figure}[!htbp]
-   \centering
-   \includegraphics[width=0.8\linewidth]{gen_flow.png}
-   \caption[Vboot General Call Graph]{The general call graph of functions for Vboot. A full overview is available in the Appendix.}\label{fig:allflow}
- \end{figure}
-
 This section describes the verification tests on Vboot using CBMC\@.
-Each subsection begins with a diagram showing the functional call graph of the section of code is being verified.
+Each subsection begins with a diagram showing the functional call graph of the section of code  being verified.
 The diagrams are color-coordinated as followed.
 The blue functions are fully software functions that are implemented in the Vboot Library.
 The purple functions connect to the SHA accelerator on a real platform, 
@@ -315,10 +309,16 @@ The sections are organized so the larger functions are in the beginning and the 
 The function being verified in a specific section is left unmodified, but some of the connecting functions are replaced with abstractions.
 These abstractions all follow the idea of an ``over-abstracted'' function discussed in the last section.
 These abstractions are acceptable because the real functions are also verified in later sections.
-The abstracted functions can be seen in the code repo\cite{my-repo}.
+The abstracted functions can be seen in the code repo~\cite{my-repo}.
+
+ \begin{figure}[!htbp]
+   \centering
+   \includegraphics[width=0.8\linewidth]{gen_flow.png}
+   \caption[Vboot General Call Graph]{The general call graph of functions for Vboot. A full overview is available in the Appendix.}\label{fig:allflow}
+ \end{figure}
 
 At the end of each section there will be a table describing the results of each CBMC run.
-CMBC uses an implementation of a SAT solver known as the MiniSat solver\cite{minisat}.
+CMBC uses an implementation of a SAT solver known as the MiniSat solver~\cite{minisat}.
 This solver outputs unSAT if the assertions hold and SAT if they do not. 
 The ``steps'' column is the number of C lines that were stepped through to reach the proof conclusion.
 The ``VCC'' column is the number of user assertions that were being verified.
@@ -343,10 +343,10 @@ This functionality is what prevents rollback attacks across multiple boots.
 VbSelectFirmware is also responsible for loading the TPM's PCR0 with a hash of the system's boot flags.
 This functionality prevents the system from changing boot flags mid-boot without detection.  
 
-Here are the tests run on VbSelectFirmware:
+Here are the properties verified on VbSelectFirmware:
 \begin{itemize}
- \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
- \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
+ \item  TPM locking -- checks that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
+ \item  LoadFirmware -- checks that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
  \item  Array accesses -- check for all possibilities of array bounds errors.
 \end{itemize}
 
@@ -362,7 +362,7 @@ Here are the tests run on VbSelectFirmware:
     \end{tabular}
 \end{table}
 
-The CBMC tests run successfully and in a short time.
+The CBMC checks run successfully and in a short time.
 The VbSelectFirmware function does little work on its own, so there is not much to verify.
 As we will see in the next section, most of the work is done in LoadFirmware. 
 
@@ -378,16 +378,16 @@ LoadFirmware drives most of Vboot's Image attestation process.
 LoadFirmware is responsible for attesting the Keyblock, Preamble, and Image.
 When LoadFirmware returns, it will have set the pass or fail statuses of both Images, and control will pass to a working Image.
 
-The CBMC test results for this function can be seen in Table~\ref{ldfw_results}. 
-Below is an itemized list of what each test is verifying.
+The CBMC verification results for this function can be seen in Table~\ref{ldfw_results}. 
+The following is an itemized list of what each check is verifying.
 
 \begin{itemize}
- \item  Google Assertions -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
- \item  Rollback test -- tests that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
- \item  Rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
- \item  Hash Failure -- tests that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
- \item  RSA Failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
- \item  Array accesses -- check for all possibilities of array bounds errors.
+ \item  Google Assertions -- this check replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
+ \item  Rollback test -- checks that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
+ \item  Rollback/rec  -- this check is supposed to find a counter-example. It checks for rollback conditions without realizing that rollback is allowed under recovery. 
+ \item  Hash Failure -- checks that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
+ \item  RSA Failure -- checks that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
+ \item  Array accesses -- checks for all possibilities of array bounds errors.
 \end{itemize}
 
 \begin{table}[!htbp]
@@ -416,19 +416,19 @@ Below is an itemized list of what each test is verifying.
     \end{tabular}
 \end{table}
 
-We can see from these tests that CBMC is working as expected.
-The counter example of the ``rollback/rec'' test quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
+We can see from these checks that CBMC is working as expected.
+The counter example of the ``rollback/rec'' check  quickly pointed the user to the counterexample where the Recovery Mode allowed rollback.
 All of the assertions were checked in a short time without the memory allocating technique outlined in Section~\ref{my-malloc}. 
 However, CBMC was able to find counterexamples to the Google Assertions because array addressing was not working correctly.
 The counterexamples involved Preamble and Keyblock addresses that were outside the bounds of the original Image.
 These addresses allowed Vboot to behave insecurely because the array addressing was not working correctly.
 However, we can see that Vboot checks for this when the memory addressing technique is applied in Table~\ref{ldfw_results_malloc}
 
-Table~\ref{ldfw_results_malloc} shows the same tests with the memory allocating technique implemented.
-We can see that CBMC takes much longer to proof the assertions, but the Google Assertions are working correctly.
+Table~\ref{ldfw_results_malloc} shows the same checks with the memory allocating technique implemented.
+We can see that CBMC takes much longer to prove the assertions, but the Google Assertions are working correctly.
 Without the memory allocation technique, it would be reasonable to assume that a generic personal computer could run Formal Verification with CBMC. 
-The first tests finished in under two minutes and the most memory used was roughly 2 Gb of RAM.
-However, with CBMC, the tests take up to an hour and use up to 60 Gb of RAM.
+The first checks finished in under two minutes and the most memory used was roughly 2 Gb of RAM.
+However, with CBMC, the checks take up to an hour and use up to 60 Gb of RAM.
 It is extremely unlikely that a personal computer would have 60 Gb of RAM, meaning that CBMC can only be run on a large server for this type of verification. 
 
 \section{TPM TLCL functions}
@@ -441,7 +441,7 @@ It is extremely unlikely that a personal computer would have 60 Gb of RAM, meani
 
 The TPM Lightweight Command Library (TLCL) is Google's library for building and sending TPM commands.
 Each function corresponds to a single TPM command and a single call to the TPMSendReceive function.
-These tests verify correct functionality for the TLCL commands that are used by Vboot. 
+These checks verify correct functionality for the TLCL commands that are used by Vboot. 
 
 \begin{itemize}
    \item Error Handling --  the TPM returns success only if the TPM command completes successfully
@@ -454,7 +454,7 @@ These tests verify correct functionality for the TLCL commands that are used by 
 
 \begin{table}[!htbp]
     \centering
-    \caption{CBMC tests on TLCL Library}\label{TLCL_results}
+    \caption{CBMC checks on TLCL Library}\label{TLCL_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb)& sat/unsat  \\ \midrule
@@ -466,10 +466,10 @@ These tests verify correct functionality for the TLCL commands that are used by 
     \end{tabular}
 \end{table}
 
-The longest test run in this section finishes in thirty minutes and uses 6.7 Gb of RAM.
-It is likely that these tests could be run on a high-end laptop.
-All tests completed successfully. 
-In addition to the individual test assertions, the tests also include the TPM assertions outlined in the next section.
+The longest check run in this section finishes in thirty minutes and uses 6.7 Gb of RAM.
+It is likely that these checks could be run on a high-end laptop.
+All checks completed successfully. 
+In addition to the individual check's assertions, the checks also include the TPM assertions outlined in the next section.
 
 \section{TPM Send and Receive}
 
@@ -498,7 +498,7 @@ While the previous section verified TPM correctness during well-defined commands
     \end{tabular}
 \end{table}
 
-Again, everything is able to verified successfully. 
+Again, everything is verified successfully. 
 The longest command finished in 6 minutes and used 15 Gb of RAM. 
 These commands would likely have to be run on a high-end Desktop or Server because of their high RAM usage.
 

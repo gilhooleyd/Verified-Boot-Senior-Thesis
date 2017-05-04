@@ -2,19 +2,19 @@
 
 This section describes the Hardware design of Google's Verified Boot (Vboot). 
 
-Verified boot's main job is to check that the image being loaded originated from
+Vboot's main job is to check that the image being loaded originated from
 Google and has not been modified. 
 This is accomplished by the cryptographic functions of hashing and signing.
 These functions can be computationally expensive and they are used often in a
 modern computer, so they are good candidate for hardware acceleration.  
 
-The hardware modules used by Verified Boot can be broken into two groups: secure storage and hardware accelerator.
-For secure storage there is an Flash memory module that provides 
+The hardware modules used by Vboot can be broken into two groups: secure storage and hardware accelerator.
+For secure storage there is a Flash memory module that provides 
 Read-Only non-volatile storage, and a Trusted Platform Module (TPM) that provides non-volatile storage that can be locked until the next boot.
 For hardware accelerators there is the cryptographic accelerator that
 implements the Secure Hash Algorithm (SHA).
 
-While the code for Vboot is open sourced and therefore available online, the laptop's
+While the code for Vboot is open source and therefore available online, the laptop's
 hardware does not have source code available.
 However, Google has released documents describing specifications for the
 Hardware modules required. 
@@ -31,7 +31,8 @@ The Flash Memory is an amount of extra non-volatile memory connected to every Ch
 The Flash Memory contains both a Read-Only section and a Read-Write section of memory.
 The Read-Only section is arguably the most important piece of hardware because it is the Root of Trust of the Vboot system.
 The Root of Trust is the set of Software and Hardware elements that are
-inherently secure\cite{RoT}.
+inherently secure~\cite{RoT}.
+This means the Root of Trust is assumed to be secure by any analyst, because if it is not secure then none of the properties will hold.
 The code within the Read-Only section is the root, or base, that is responsible for verifying the rest of the Vboot process.
 The Read-Only section is enforced by a physical screw, called the Write Protect screw, which is located in the laptop.
 Removing this screw removes the Root of Trust, but doing so voids the laptop's warranty.
@@ -40,7 +41,7 @@ The Read-Only memory is flashed into the laptop when the Chromebook is being bui
 The Reset Vector of the CPU points to the Read-Only flash memory, and the code located in the RO section provides information to verify the rest of the system.
 Verified Boot claims to be secure as long as the Root of Trust holds.
 
-Each Chrome book comes with 8 Mbs of non-volatile Flash memory~\cite{fw-summit}.
+Each Chrome book comes with 8 Mb of non-volatile Flash memory~\cite{fw-summit}.
 The memory is organized according to the Flashmap which is included in the appendix.
 The Flash memory is connected to the CPU by the Serial Peripheral Interface (SPI).
 The SPI driver handles the protocol and provides an interface for reading multiple bytes of of memory at once.
@@ -50,14 +51,14 @@ The SPI driver handles the protocol and provides an interface for reading multip
 The Trusted Platform Module or TPM is a general purpose cryptographic processor that is connected to a computer system for Hardware based security\cite{TPM}.
 A cryptographic processor is a processor that implements a variety of
 cryptographic functions, like hashing, encryption and decryption, and random
-number generators. The full list of cryptographic functions can be see in
+number generation. The full list of cryptographic functions is provided in
 Figure~\ref{fig:tpm_hw}.
 Additionally the TPM contains its own storage (volatile and non-volatile), that can be accessed from the main CPU in specific ways.
 For the purpose of this report, the TPM is used as a module that can securely store keys and measurements made by the bootloader.
 
 The physical hardware of a TPM can be created by any company, but it must conform to the standards released by the Trusted Computing Group (TCG) \cite{TCG}.
 The TCG has released two specifications of TPMs and they are known as TPMs version 1.2 and 2.0.
-For the scope of this project we will be looking at the TPM 1.2 specifications \cite{TPM-design}\cite{TPM-struct}\cite{TPM-cmd}.
+For the scope of this project we looked at the TPM 1.2 specifications~\cite{TPM-design}\cite{TPM-struct}\cite{TPM-cmd}.
 
 The TPM specification outlines the commands, structures, and interface for the system.
 The TPM commands describe the full functionality of the system by describing each command the main CPU can request.
@@ -75,7 +76,7 @@ The TPM interface describes the registers that are exposed to the CPU and how th
   \includegraphics[width=1.0\linewidth]{tpm_regs.png}
 \end{subfigure}
 \caption[TPM Hardware Diagram]{On the left we can see a HW block diagram of the TPM
-itself\cite{tpm-slides}. 
+itself~\cite{tpm-slides}. 
 On the right we can see the registers of the TPM that are accessed by the CPU.}
 \label{fig:tpm_hw}
 \end{figure}
@@ -137,7 +138,7 @@ We can think of a hash as the fingerprint of a message, because it takes an arbi
 The PCRs are iteratively extended with measurements of the system, for example,
 the hash of the Read Only Firmware state, then the hash of the Read Write
 Firmware state, and then the hash of the Kernel state.
-The final result will be identical each time if and only if there were no changes in each of the things being measured.
+The final result will be identical each time if and only if there were no changes in each of the states being measured.
 Because SHA hashing is collision resistant, it is difficult to find a fake
 configuration of the system that will hash to the same value as a correct
 configuration.
@@ -194,7 +195,7 @@ For example, Google encrypts the Image to be attested with a private key known o
 In order to recover the Image, the Chromebook must decrypt the data with Google's public key, which is publicly available. 
 The RSA algorithm asserts that only Google has access to the private 
 key, and that only Google's public key can decrypt the data.
-This assertions provide a reasonable guarantee that the data arrived from Google.
+This assertion provide a reasonable guarantee that the data arrived from Google.
 
 In reality, the RSA algorithm is unable to encrypt large amounts of data.
 For this reason, only the hash of the data is encrypted. 
@@ -202,23 +203,23 @@ The entire image can be attested from the encrypted hash because the end user
 can hash the image again and compare the two.
 This is the attestation process that will be used throughout the rest of the
 paper.
-The encrypted hash value of a data structure is known as a ``Signature''. 
+The encrypted hash value of a data structure is known as a ``Signature.'' 
 Encrypting with an RSA private key is known as ``signing'' data.
 Decrypting with an RSA public key is known as ``unsigning'' data.
 
 \section{QEMU Emulation}\label{qemu_em}
 
 
-QEMU~\cite{qemu-site} is an open source emulator that is used in the report to
+QEMU~\cite{qemu-site} is an open source emulator that is used in this research project to
 emulate the SoC running Vboot.
 For this project it is used to emulate a 32 bit i386 CPU with a Memory Mapped TPM and SHA module.
 Starting Vboot relies on QEMU's ability to boot any image that starts with a defined multi-boot header~\cite{multiboot}.
 QEMU then supplies its own bootloader, which is responsible for initializing RAM, putting the processor in 32 bit mode, and loading the image off of disk.
-As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this report it was easier to use QEMU's built-in bootloader.
+As we will see in Section~\ref{coreboot}, for Chromebook this job is normally taken care of by Coreboot, but for the purposes of this project it was easier to use QEMU's built-in bootloader.
 
 The boatloader code that interacted with QEMU (included in the appendix and the
 github link) was based off of a project developed for ``Open Source at
-Princeton'' by me and Lance Goodridge.
+Princeton'' by Lance Goodridge and me.
 The project allowed students to build their own Operating System from scratch and develop it within QEMU\@.
 The project was repurposed by this thesis for its well-organized Makefile, linker script, and multi-boot header.
 These tools facilitated the creation of a standalone C file that could hook into the Vboot repository and run Google's Verified Boot within QEMU's virtualized Hardware.
@@ -255,7 +256,7 @@ an entire hardware operation like SHA hashing.
 
 
 ILA provides a way to ``precisely capture updates to all firmware-accessible
-states spanning cores, accelerators, and peripherals''\cite{ila-template}.
+states spanning cores, accelerators, and peripherals~\cite{ila-template}.''
 An ILA is created from either a C or Verilog program that describes the
 Hardware.
 To create an ILA, a programmer defines a ``template'' in python describing the

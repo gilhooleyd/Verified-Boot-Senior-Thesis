@@ -5,14 +5,14 @@ Boot.
 Verified Boot (Vboot) is a secure boot implementation only loads a
 Kernel Image that has been signed by Google and is untampered.
 Images that have been recognized as security risks will not be loaded and the system will restart into a Recovery Mode.
-This section will discuss the security promises made by the system as well
+This chapter discusses the security promises made by the system as well
 as the attack vectors that are not considered.
 It will also discuss relevant program flow and data structures.
 
 \section{Security Promises}
 
 The main purpose of Chrome OS's verified boot is to provide relative security to the end user without sacrificing usability or functionality. 
-In its mission statement, verified boot is designed against an ``opportunistic hacker''~\cite{vboot-design-doc}.
+In its mission statement, verified boot is designed against an ``opportunistic hacker~\cite{vboot-design-doc}.''
 Vboot protects against vectors of attack that are relatively quick to exploit.
 Vboot will realize any attack or modification to the Image on the next boot cycle.
 Once an attack is realized Vboot is responsible for forcing the system back into
@@ -23,7 +23,7 @@ The next time the Chromebook boots, Vboot will recognize that the Image changed,
 and it will force the user to enter Recovery Mode and secure the device. 
 
 There are many attacks that Vboot is not able to recognize or protect against.
-For example, Vboot does not make any promises to the safety of the system once the kernel is running and the user has control. 
+For example, Vboot does not make any promises about the safety of the system once the kernel is running and the user has control. 
 Any attacks that are outside of the Image (in userspace) would remain
 undetected because they would not modify the kernel.
 For example, changing the Web browser to use a proxy that collects information
@@ -49,10 +49,10 @@ unmodified.
 In this way, the Root of Trust builds until all of the system's code is
 attested, and the laptop can boot.
 
-For the scope of this document only the attestation the Read-Only Firmware's
+For the scope of this thesis only the attestation the Read-Only Firmware's
 attestation of the Image will be discussed.
 The Read-Only attestation contains more interesting control flow, and
-attestation process is essentially repeated for the Read-Write Firmware.
+the attestation process is essentially repeated for the Read-Write Firmware.
 
 \begin{figure}
 \begin{subfigure}{.4\textwidth}
@@ -64,8 +64,8 @@ attestation process is essentially repeated for the Read-Write Firmware.
   \includegraphics[width=1.0\linewidth]{vboot_stages_AB_recovery.png}
 \end{subfigure}
 \caption[Verified Boot Stages]{The left image shows the stages of Vboot
-    Firmware\cite{fw-summit}. The right image
-    shows the different boot paths, and data locations\cite{fw-summit}. Both make the distinction
+    Firmware~\cite{fw-summit}. The right image
+    shows the different boot paths, and data locations~\cite{fw-summit}. Both make the distinction
 between Read-Only and Read-Write memory.}
 \label{fig:vboot_stages_overview}
 \end{figure}
@@ -79,51 +79,41 @@ These transitions will be described in more detail in Section~\ref{sec:boot-mode
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\linewidth]{verification_flow.png}
+  \includegraphics[width=1\linewidth]{verification_flow.png}
   \caption[Verified Boot Program Flow]{The logical flow for attesting the Image. Notice
-  the different path for Developer mode, and the possibilities for
-  failure.}\label{fig:verif_flow}
+  the arrow Developer mode from Loading to attesting the Preamble.}\label{fig:verif_flow}
 \end{figure}
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\linewidth]{attest_flow.png}
+  \includegraphics[width=1\linewidth]{attest_flow.png}
   \caption[General Attest Flow]{The logical flow for attesting any data
       structure.}\label{fig:attest_flow}
 \end{figure}
 
-Vboot's process for attesting the Image is described as follows: Vboot first
-loads the image, then attests the keyblock, then attests the
-preamble, then attests the body, and finally Vboot executes the code in the body. 
-These stages can be seen in Figure~\ref{fig:verif_flow}.
-
-Loading the image consists of copying the image out of the Flash Memory and into
-RAM\@.
-
-Verifying the Keyblock consists of using the Keyblock's signature, which is a
-hash of the Keyblock that is signed by Google's Private key.
+Vboot's process for attesting the Image is described as follows:
+\begin{itemize}
+    \item  Vboot loads the Image. This consists of copying the image out of Flash Memory and into RAM.
+    \item  Vboot attests the Keylock. The Keyblock's signature is a hash of the Keyblock that is signed by Google's Private key.
 Google's Public Key is used to decrypted the signature.
 Once decrypted the signature is is now a hash of the Keyblock.
 Finally, Vboot hashes the Keyblock, and this value is compared with the
 decrypted signature.
 If the hashes are not equal, then Vboot can be sure that the Keyblock has been
 modified in some way. 
-
-The Preamble is attested in the same way, except that a different Private and Public Key pair is used.
+    \item Vboot attests the Preamble.
 The Keyblock holds the key that is used for the Preamble's signature.
 The Keyblock is used so that Google has the ability to change the encryption
 type of the Preamble and Firmware if they wish.
 Google's Main Public Key is stored in Read-Only memory, so it cannot be changed.
-This hierarchy of keys also allows Google to be less careful with their ``lower
-security'' keys because they can change them through a firmware update if the key is
-compromised.
-
-After the Preamble is verified, the Image is hashed and compared
-against the hash stored in the preamble. 
+    \item Vboot attests the Image.
+The Image is hashed and compared against the hash stored in the preamble.
 The hash in the preamble has already been attested because the preamble was
-signed, so this attests that the Image is correct and unmodified. Finally, the
-system jumps to the Image and begins to execute the code for the 
-Operating System.
+signed, so this attests that the Image is correct and unmodified. 
+    \item Vboot executes the Image.
+The system jumps to the location of the Image in RAM and begins to execute the Operating System code located there.
+\end{itemize}
 
+These stages are also seen in Figure~\ref{fig:verif_flow}.
 
 \section{Boot Modes}\label{sec:boot-modes}
 
@@ -202,7 +192,7 @@ to talk about the Image's data structures.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.6\linewidth]{fw_image.png}
+    \includegraphics[width=\linewidth]{fw_image.png}
     \caption[Google's Image Data Layout]{Layout of Google's Image~\cite{vboot-data-structures}}
     \label{fig:vboot_images}
 \end{figure}
@@ -234,7 +224,7 @@ stored in the Preamble.
   \includegraphics[width=1.0\linewidth]{vbsignature.png}
 \end{subfigure}
 \caption[Key Block Data Structure]{The Key Block data structure and the data
-structure for Keys and Signatures}
+structure for Keys and Signatures~\cite{vboot-data-structures}}
 \label{fig:vboot_keyblock}
 \end{figure}
 
@@ -281,7 +271,7 @@ Figure~\ref{fig:code_repos} and the purpose of each repo is described below.
 \begin{figure}
   \centering
   \includegraphics[width=0.45\linewidth]{qemu_repos}
-  \caption[This report's Repository Layout]{This report's boot flow uses a
+  \caption[This project's Repository Layout]{This project's boot flow uses a
       created C wrapper for interfacing with QEMU and the TPM, and an unmodified Vboot for the verification}\label{fig:qemu_repos}
 \end{figure}
 
@@ -322,9 +312,9 @@ easily and be adapted for many different types of hardware.
 \subsection{Software TPM}
 
 The Software TPM was taken from a series of repositories created by IBM's
-Stefan Berger. 
-These repositories emulated the TPM functions\cite{TPMLibs}, the TPM Command
-Fifo\cite{SWTPM}, and the TPM Register Interface\cite{TPMQEMU}. 
+Stefan Berger~\cite{SWTPM}. 
+These repositories emulated the TPM functions~\cite{TPMLibs}, the TPM Command
+Fifo~\cite{SWTPM}, and the TPM Register Interface~\cite{TPMQEMU}. 
 appendix.
 
 This emulated TPM implements all of the TPM's functionality as defined by the
@@ -346,7 +336,7 @@ functions can be used unmodified.
 \subsection{CBMC-Vboot}
 
 The CBMC-Vboot is a repository created to connect Vboot to the emulated
-hardware used in this report\cite{my-repo}.
+hardware used in this project~\cite{my-repo}.
 The layout of this repository is discussed in the Appendix.
 We can see in Figure~\ref{fig:qemu_repos} that it is used as a wrapper to tie
 Vboot together with QEMU and the Software TPM libraries.

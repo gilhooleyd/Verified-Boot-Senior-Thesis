@@ -1,7 +1,7 @@
 \chapter{Code Organization}
 
-The code for this report is based off of Google's Verified Boot reference repository\cite{vboot-codebase} and the modifications can be accessed in a cloned and edited repository\cite{my-repo}.
-Changes were to the Verified Boot repo were mostly restricted to the main Makefile and the unit test folder \code{tests/}.
+The code for this thesis is based off of Google's Verified Boot reference repository~\cite{vboot-codebase} and the modifications can be accessed in a cloned and edited repository~\cite{my-repo}.
+Changes to the Verified Boot repo were mostly restricted to the main Makefile and the unit test folder \code{tests/}.
 
 In order to have the results reproducible, all work was done inside of Vagrant Virtual Machine running Fedora 23. 
 To get a working environment, clone the repository, initialize the Vagrant box, and run the following command:
@@ -21,7 +21,7 @@ The \code{scripts/} folder contains the configuration scripts.
 The main scripts are for installation, but there are also scripts to manage the SW TPM library, and to build a Vboot Image with related Public/Private keys.
 
 The \code{qemu/} folder contains all of the code to run Vboot within QEMU with the hardware setup described in Section~\ref{qemu_em}.
-The \code{tpm-pcr.c} file tests the only the TPM PCR functionality.
+The \code{tpm-pcr.c} file tests  only the TPM PCR functionality.
 The \code{tpm-badcmds.c} file stress tests the TPM behavior with bad commands.
 The \code{vboot-full.c} goes through the full process of Chrome's Verified Boot.
 The \code{README.md} file contains information on building the software and using GDB testing.
@@ -67,14 +67,14 @@ This code shows the ILA for the TPM Hardware
 
 \section{Complete Verification Results}
 \begin{itemize}
- \item  TPM locking -- tests that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
- \item  LoadFirmware -- tests that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
+ \item  TPM locking -- checks that it is not possible for VbSelectFirmware to return success if it is unable to lock the TPM
+ \item  LoadFirmware -- checks that it is not possible for control to pass to an Image if it is not selected by LoadFirmware
  \item  Array accesses -- check for all possibilities of array bounds errors.
  \item  Google Assertions -- this test replaces Google's assertions with CBMC assertions and checks that none of them are violated under any inputs
- \item  Rollback test -- tests that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
- \item  Rollback/rec  -- this test is supposed to find a counter-example. It tests for rollback conditions without realizing that rollback is allowed under recovery. 
- \item  Hash Failure -- tests that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
- \item  RSA Failure -- tests that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
+ \item  Rollback test -- checks that under no input conditions will LoadFirmware choose an Image with a lower version number (see Property~\ref{eq:rollback}).
+ \item  Rollback/rec  -- this check is supposed to find a counter-example. It checks for rollback conditions without realizing that rollback is allowed under recovery. 
+ \item  Hash Failure -- checks that it is impossible to verify an image as correct if hashing the Image Body returns an error (see Property~\ref{eq:hash_cor}).
+ \item  RSA Failure -- checks that is impossible to verify an image as correct if verifying either the Keyblock or Preamble returns an error (see Property~\ref{eq:sig_cor}).
  \item  Array accesses -- check for all possibilities of array bounds errors.
    \item Error Handling --  the TPM returns success only if the TPM command completes successfully
     \item SetupTPM -- the TPM is initialized successfully with well-defined states
@@ -88,7 +88,7 @@ This code shows the ILA for the TPM Hardware
 
 \begin{table}[!htbp]
     \centering
-    \caption{All CBMC Tests}\label{all_results}
+    \caption{All CBMC checks}\label{all_results}
     \begin{tabular}{lrrrrr}
         \toprule
         test name & steps & VCCs & time (s) & memory (Mb) & sat/unsat  \\ \midrule
@@ -113,8 +113,7 @@ This code shows the ILA for the TPM Hardware
         RollbackFirmwareLock & 17450 & 4 & 7 & 369 & unsat \\
         SetTPMBootModeState & 34621 & 8 & 11 & 397 & unsat \\ \midrule
         \textbf{TPM}  &  & & & & \\
-        Liveness & 20393 & 2220 & 387 & 15288 & unsat \\
-%        Error Handling & 20109 & 3 & 379 & 15281 & unsat \\
+        Liveness & 20369 & 2217 & 359 & 56434 & unsat \\
         Data Send & 21703 & 259 & 34 & 3991 & unsat \\
         Data Receive & 20231 & 2 & 391 & 61040 & unsat \\ \bottomrule
     \end{tabular}

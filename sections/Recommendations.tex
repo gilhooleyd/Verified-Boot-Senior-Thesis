@@ -1,6 +1,6 @@
 \chapter{Security Recommendations}
 
-This section will combine the results in the last section to provide security
+This chapter uses the results in the last chapter to provide security
 recommendations for Verified Boot.
 While no security holes were found in Verified Boot, specific additions to the
 Vboot process would reduce the surface of attack in the future.
@@ -50,7 +50,7 @@ but before it is being used.
 In Vboot's case a TOCTOU attack would modify the Image after it has been
 attested, but before Vboot jumps to the start of the Image's code.
 
-TOCTOU vulnerabilities are very common in secure programs\cite{tpm-toctou}.
+TOCTOU vulnerabilities are very common in secure programs~\cite{tpm-toctou}.
 Implementing memory locking would make it trivial to prove that the system has
 no TOCTOU attack vectors. 
 Until this feature is implemented, there will always be the possibility of a
@@ -58,9 +58,9 @@ TOCTOU attack.
 This recommendation was brought to the attention of Google Engineer's through
 the Chromium-OS email group.
 Their response was that it is possible to implement under current hardware, and
-it was recommended under NIST's ``Bios Protection Guidelines'', but it has not
+it was recommended under NIST's ``Bios Protection Guidelines,'' but it has not
 been implemented yet.
-There are examples of Secure Boot implementations that enable memory locking\cite{elane}.
+There are examples of Secure Boot implementations that enable memory locking~\cite{elane}.
 
 % \section{Increased TPM Usage}
 % 

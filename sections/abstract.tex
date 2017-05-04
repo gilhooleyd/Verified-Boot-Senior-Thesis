@@ -1,15 +1,19 @@
-Security systems can only be considered truly secure if there exists a proof that the system is bug free. 
+A system can only be considered truly secure if there exists a proof that the system meets its security specification. 
 This is done with the use of Formal Verification tools, which can analyze systems and provide formal proofs of correctness.
 However, security systems are becoming larger and more complicated, making it harder to provide such proofs. 
 These systems have also started to offload calculations to hardware modules.
-In the past, tools for Formal Verification were focused on proving correctness for either a hardware system or a software systems.
-Traditional verification tools are not equipt to handle current systems that depend heavily on interactions between hardware and software.
-New tools have been developed to perform verification on these systems, but the tools are tested on small, academic systems.
-This report investigates the use of new formal verification tools on the industry-sized security program Verified Boot.
+In the past, tools for Formal Verification were focused on proving correctness for either a hardware system or a software system.
+Traditional verification tools focus on a single type of system and are not equipped to handle current systems that depend heavily on interactions between hardware and software.
+New tools have been developed to perform verification on these systems, but the techniques are tested on small, academic systems.
+This thesis investigates the use of new formal verification tools on the industry-sized security program Verified Boot.
 Google's Verified Boot is a secure bootloader used in the chromebook laptops.
 Verified Boot uses cryptographic functions to ensure that only Google's code is run on the laptop.
 This process involves many hardware-software interactions, making it a difficult system for traditional verification techniques.
-In order to perform the verification, a new hardware abstraction tool is used to model Verified Boot's hardware.
-A formal model was created to perform verification with a Trusted Platform Module (TPM). 
-A software framework was created around Verified Boot in order to run it entirely on Open Sourced hardware.
-Finally, multiple software abstraction techniques are used in order to run formal verification tools on Verified Boot's large codebase in a reasonable time.
+In order to perform the verification, the Instruction Level Abstraction (ILA) toolchain is used to model Verified Boot's required hardware of a SHA Accelerator and Trusted Platform Module.
+The ILA toolchain allows formal models to be created from Hardware.
+These models are verifably equivalent to the Hardware models and can be used in conjunction with the software verification. 
+A formal model was created for parts of a Trusted Platform Module (TPM). 
+Additionally, a software framework was created around Verified Boot in order to run it entirely on open sourced hardware.
+Finally, multiple software abstraction techniques are used in order to run Formal Verification tools on Verified Boot's large codebase in a reasonable time.
+Twenty security proofs are generated from the codebase, verifying the claims originally stated by Google.
+Program correctness, array-bounds, and program flow are verified against all possible user inputs.

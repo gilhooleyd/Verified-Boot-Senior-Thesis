@@ -1,4 +1,4 @@
-\chapter{Conclusion}
+\chapter{Conclusions}
 
 This paper investigated the feasibility of formally verifying a large scale system.
 Google's Verified Boot program was shown to be a good candidate for formal verification because of its security guarantees and its interactions across the Hardware-Software boundary.
@@ -7,7 +7,7 @@ Model checking abstractions were discussed, such as abstracted functions, memory
 allocation, and non-deterministic array writes.
 These abstractions were necessary for Formal Verification tools to produce
 results on the Verified Boot software.
-It was shown that the high RAM usage of CBMC prevents verification from being run on personal computers.
+It was observed that the high RAM usage of CBMC prevents verification from being run on personal computers.
 
 \section{Future Work}
 
@@ -25,21 +25,19 @@ Hardware\cite{load-protocol} and applying the ILA toolchain to these systems wou
 Another direction for the ILA toolchain that has been considered but not explored
 is its use to verify that two hardware modules have the same functionality.
 This type of verification  is important as a TPM can be produced by various Hardware
-Vendors\cite{atmel-tpm}\cite{broadcom-tpm}\cite{infineon-tpm}, and the different 
+Vendors~\cite{atmel-tpm}\cite{broadcom-tpm}\cite{infineon-tpm}, and the different 
 implementations have been found to vary significantly\cite{tcg-inside}.
 A full ILA description of a TPM would be very useful for comparing two hardware
 chips from different vendors, as well as verifying that a software
 implementation matches the Hardware implementation. 
 Once the entire TPM functionality exists in an ILA description, more
 verification could be done on the TPM API
-itself\cite{TPM-state}\cite{TPM-spec-verif}.
+itself~\cite{TPM-state}\cite{TPM-spec-verif}.
 
 Additionally, there are more areas in Google's Verified Boot that
 deserve more attention. 
 The Read-Write section of Verified Boot is ignored because it shares the
 majority of its code with the Read-Only section, but it is still worth verifying. 
 The Update functionality of Verified Boot is also be worth investigating.
-Problems in the Update functionality will not affect the properties outlined in this report.
+Problems in the Update functionality will not affect the properties outlined in this thesis.
 This report already assumes that an attacker can upload arbitrary updates.
-
-Each of these suggestions are further areas of research that can be taken into Verified Boot or the field of Formal Verification.
